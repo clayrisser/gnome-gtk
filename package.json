@@ -63,7 +63,7 @@
     "eslint-config-airbnb-typescript": "^4.0.1",
     "eslint-config-jam": "^0.2.17",
     "jest": "^24.9.0",
-    "ts-gir": "^0.1.7",
+    "ts-gir": "^0.1.10",
     "tsc": "^1.20150623.0",
     "typescript": "^3.5.3"
   },
@@ -80,6 +80,7 @@
   "tsgir": {
     "moduleName": "gnome-gtk",
     "output": "src/index",
+    "ignoreDuplicates": false,
     "importMap": {
       "atk": "gnome-atk",
       "cairo": "gnome-cairo",

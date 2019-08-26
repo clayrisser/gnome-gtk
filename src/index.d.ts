@@ -1,9 +1,9 @@
 import * as xlib from 'gnome-xlib';
 import * as cairo from 'gnome-cairo';
-import * as Atk from 'gnome-atk';
-import * as GObject from 'gnome-gobject';
 import * as GdkPixbuf from 'gnome-gdk-pixbuf';
 import * as Pango from 'gnome-pango';
+import * as Atk from 'gnome-atk';
+import * as GObject from 'gnome-gobject';
 import * as Gio from 'gnome-gio';
 import * as GLib from 'gnome-glib';
 import * as Gdk from 'gnome-gdk';
@@ -1181,7 +1181,11 @@ declare module 'gnome-gtk' {
   export interface Actionable {
     'action-name': string;
     'action-target': GLib.Variant;
+    get_action_name(): string | null;
+    get_action_target_value(): GLib.Variant;
+    set_action_name(action_name: string | null): void;
     set_action_target(format_string: string, ...args: any[]): void;
+    set_action_target_value(target_value: GLib.Variant | null): void;
     set_detailed_action_name(detailed_action_name: string): void;
   }
   export interface Activatable {
@@ -1192,6 +1196,7 @@ declare module 'gnome-gtk' {
     get_use_action_appearance(): boolean;
     set_related_action(action: Action): void;
     set_use_action_appearance(use_appearance: boolean): void;
+    sync_action_properties(action: Action | null): void;
   }
   export interface AppChooser {
     'content-type': string;
@@ -1199,28 +1204,121 @@ declare module 'gnome-gtk' {
     get_content_type(): string;
     refresh(): void;
   }
-  export interface Buildable {}
-  export interface CellAccessibleParent {}
+  export interface Buildable {
+    add_child(
+      builder: Builder,
+      child: GObject.Object,
+      type: string | null
+    ): void;
+    construct_child(builder: Builder, name: string): GObject.Object;
+    custom_finished(
+      builder: Builder,
+      child: GObject.Object | null,
+      tagname: string,
+      data: object | null
+    ): void;
+    custom_tag_end(
+      builder: Builder,
+      child: GObject.Object | null,
+      tagname: string,
+      data: object | null
+    ): void;
+    custom_tag_start(
+      builder: Builder,
+      child: GObject.Object | null,
+      tagname: string,
+      parser: GLib.MarkupParser,
+      data: object | null
+    ): boolean;
+    get_internal_child(builder: Builder, childname: string): GObject.Object;
+    get_name(): string;
+    parser_finished(builder: Builder): void;
+    set_buildable_property(
+      builder: Builder,
+      name: string,
+      value: GObject.Value
+    ): void;
+    set_name(name: string): void;
+  }
+  export interface CellAccessibleParent {
+    activate(cell: CellAccessible): void;
+    edit(cell: CellAccessible): void;
+    expand_collapse(cell: CellAccessible): void;
+    get_cell_area(cell: CellAccessible, cell_rect: Gdk.Rectangle): void;
+    get_cell_extents(
+      cell: CellAccessible,
+      x: number,
+      y: number,
+      width: number,
+      height: number,
+      coord_type: Atk.CoordType
+    ): void;
+    get_cell_position(cell: CellAccessible, row: number, column: number): void;
+    get_child_index(cell: CellAccessible): number;
+    get_column_header_cells(cell: CellAccessible): Atk.Object[];
+    get_renderer_state(cell: CellAccessible): CellRendererState;
+    get_row_header_cells(cell: CellAccessible): Atk.Object[];
+    grab_focus(cell: CellAccessible): boolean;
+    update_relationset(
+      cell: CellAccessible,
+      relationset: Atk.RelationSet
+    ): void;
+  }
   export interface CellEditable {
     'editing-canceled': boolean;
+    editing_done(): void;
+    remove_widget(): void;
+    start_editing(event: Gdk.Event | null): void;
   }
   export interface CellLayout {
+    add_attribute(cell: CellRenderer, attribute: string, column: number): void;
+    clear(): void;
+    clear_attributes(cell: CellRenderer): void;
+    get_area(): CellArea | null;
+    get_cells(): GLib.List;
+    pack_end(cell: CellRenderer, expand: boolean): void;
+    pack_start(cell: CellRenderer, expand: boolean): void;
+    reorder(cell: CellRenderer, position: number): void;
     set_attributes(cell: CellRenderer, ...args: any[]): void;
+    set_cell_data_func(
+      cell: CellRenderer,
+      func: CellLayoutDataFunc | null,
+      func_data: object | null,
+      destroy: GLib.DestroyNotify
+    ): void;
   }
   export interface ColorChooser {
     rgba: Gdk.RGBA;
     'use-alpha': boolean;
+    add_palette(
+      orientation: Orientation,
+      colors_per_line: number,
+      n_colors: number,
+      colors: Gdk.RGBA[] | null
+    ): void;
+    get_rgba(color: Gdk.RGBA): void;
     get_use_alpha(): boolean;
+    set_rgba(color: Gdk.RGBA): void;
     set_use_alpha(use_alpha: boolean): void;
   }
   export interface Editable {
     copy_clipboard(): void;
     cut_clipboard(): void;
     delete_selection(): void;
+    delete_text(start_pos: number, end_pos: number): void;
+    get_chars(start_pos: number, end_pos: number): string;
     get_editable(): boolean;
+    get_position(): number;
+    get_selection_bounds(start_pos?: number, end_pos?: number): boolean;
+    insert_text(
+      new_text: string,
+      new_text_length: number,
+      position: number
+    ): void;
     paste_clipboard(): void;
     select_region(start_pos: number, end_pos: number): void;
     set_editable(is_editable: boolean): void;
+    set_position(position: number): void;
   }
   export interface FileChooser {
     action: FileChooserAction;
@@ -1313,13 +1411,23 @@ declare module 'gnome-gtk' {
     'show-preview-entry': boolean;
     get_font(): string | null;
     get_font_desc(): Pango.FontDescription | null;
+    get_font_face(): Pango.FontFace | null;
+    get_font_family(): Pango.FontFamily | null;
     get_font_features(): string;
+    get_font_map(): Pango.FontMap | null;
+    get_font_size(): number;
     get_language(): string;
     get_level(): FontChooserLevel;
     get_preview_text(): string;
     get_show_preview_entry(): boolean;
+    set_filter_func(
+      filter: FontFilterFunc | null,
+      user_data: object | null,
+      destroy: GLib.DestroyNotify
+    ): void;
     set_font(fontname: string): void;
     set_font_desc(font_desc: Pango.FontDescription): void;
+    set_font_map(fontmap: Pango.FontMap | null): void;
     set_language(language: string): void;
     set_level(level: FontChooserLevel): void;
     set_preview_text(text: string): void;
@@ -1330,7 +1438,11 @@ declare module 'gnome-gtk' {
     get_orientation(): Orientation;
     set_orientation(orientation: Orientation): void;
   }
-  export interface PrintOperationPreview {}
+  export interface PrintOperationPreview {
+    end_preview(): void;
+    is_selected(page_nr: number): boolean;
+    render_page(page_nr: number): void;
+  }
   export interface RecentChooser {
     filter: RecentFilter;
     limit: number;
@@ -1342,8 +1454,11 @@ declare module 'gnome-gtk' {
     'show-private': boolean;
     'show-tips': boolean;
     'sort-type': RecentSortType;
+    add_filter(filter: RecentFilter): void;
     get_current_item(): RecentInfo;
+    get_current_uri(): string;
     get_filter(): RecentFilter;
+    get_items(): GLib.List;
     get_limit(): number;
     get_local_only(): boolean;
     get_select_multiple(): boolean;
@@ -1353,6 +1468,11 @@ declare module 'gnome-gtk' {
     get_show_tips(): boolean;
     get_sort_type(): RecentSortType;
     get_uris(length?: number): string[];
+    list_filters(): GLib.SList;
+    remove_filter(filter: RecentFilter): void;
+    select_all(): void;
+    select_uri(uri: string): boolean;
+    set_current_uri(uri: string): boolean;
     set_filter(filter: RecentFilter | null): void;
     set_limit(limit: number): void;
     set_local_only(local_only: boolean): void;
@@ -1361,13 +1481,21 @@ declare module 'gnome-gtk' {
     set_show_not_found(show_not_found: boolean): void;
     set_show_private(show_private: boolean): void;
     set_show_tips(show_tips: boolean): void;
+    set_sort_func(
+      sort_func: RecentSortFunc,
+      sort_data: object | null,
+      data_destroy: GLib.DestroyNotify | null
+    ): void;
     set_sort_type(sort_type: RecentSortType): void;
+    unselect_all(): void;
+    unselect_uri(uri: string): void;
   }
   export interface Scrollable {
     hadjustment: Adjustment;
     'hscroll-policy': ScrollablePolicy;
     vadjustment: Adjustment;
     'vscroll-policy': ScrollablePolicy;
+    get_border(border: Border): boolean;
     get_hadjustment(): Adjustment;
     get_hscroll_policy(): ScrollablePolicy;
     get_vadjustment(): Adjustment;
@@ -1377,18 +1505,66 @@ declare module 'gnome-gtk' {
     set_vadjustment(vadjustment: Adjustment | null): void;
     set_vscroll_policy(policy: ScrollablePolicy): void;
   }
-  export interface StyleProvider {}
-  export interface ToolShell {}
-  export interface TreeDragDest {}
-  export interface TreeDragSource {}
+  export interface StyleProvider {
+    get_icon_factory(path: WidgetPath): IconFactory | null;
+    get_style(path: WidgetPath): StyleProperties | null;
+    get_style_property(
+      path: WidgetPath,
+      state: StateFlags,
+      pspec: GObject.ParamSpec,
+      value: GObject.Value
+    ): boolean;
+  }
+  export interface ToolShell {
+    get_ellipsize_mode(): Pango.EllipsizeMode;
+    get_icon_size(): IconSize;
+    get_orientation(): Orientation;
+    get_relief_style(): ReliefStyle;
+    get_style(): ToolbarStyle;
+    get_text_alignment(): number;
+    get_text_orientation(): Orientation;
+    get_text_size_group(): SizeGroup;
+    rebuild_menu(): void;
+  }
+  export interface TreeDragDest {
+    drag_data_received(dest: TreePath, selection_data: SelectionData): boolean;
+    row_drop_possible(
+      dest_path: TreePath,
+      selection_data: SelectionData
+    ): boolean;
+  }
+  export interface TreeDragSource {
+    drag_data_delete(path: TreePath): boolean;
+    drag_data_get(path: TreePath, selection_data: SelectionData): boolean;
+    row_draggable(path: TreePath): boolean;
+  }
   export interface TreeModel {
     filter_new(root: TreePath | null): any;
     foreach(func: TreeModelForeachFunc, user_data: object | null): void;
     get(iter: TreeIter, ...args: any[]): void;
+    get_column_type(index_: number): any;
+    get_flags(): TreeModelFlags;
+    get_iter(iter: TreeIter, path: TreePath): boolean;
     get_iter_first(iter: TreeIter): boolean;
     get_iter_from_string(iter: TreeIter, path_string: string): boolean;
+    get_n_columns(): number;
+    get_path(iter: TreeIter): TreePath;
     get_string_from_iter(iter: TreeIter): string;
     get_valist(iter: TreeIter, var_args: any): void;
+    get_value(iter: TreeIter, column: number, value: GObject.Value): void;
+    iter_children(iter: TreeIter, parent: TreeIter | null): boolean;
+    iter_has_child(iter: TreeIter): boolean;
+    iter_n_children(iter: TreeIter | null): number;
+    iter_next(iter: TreeIter): boolean;
+    iter_nth_child(iter: TreeIter, parent: TreeIter | null, n: number): boolean;
+    iter_parent(iter: TreeIter, child: TreeIter): boolean;
+    iter_previous(iter: TreeIter): boolean;
+    ref_node(iter: TreeIter): void;
+    row_changed(path: TreePath, iter: TreeIter): void;
+    row_deleted(path: TreePath): void;
+    row_has_child_toggled(path: TreePath, iter: TreeIter): void;
+    row_inserted(path: TreePath, iter: TreeIter): void;
+    rows_reordered(path: TreePath, iter: TreeIter, new_order: number): void;
     rows_reordered_with_length(
       path: TreePath,
       iter: TreeIter | null,
@@ -1396,8 +1572,25 @@ declare module 'gnome-gtk' {
       length: number
     ): void;
     sort_new_with_model(): any;
+    unref_node(iter: TreeIter): void;
   }
-  export interface TreeSortable {}
+  export interface TreeSortable {
+    get_sort_column_id(sort_column_id: number, order: SortType): boolean;
+    has_default_sort_func(): boolean;
+    set_default_sort_func(
+      sort_func: TreeIterCompareFunc,
+      user_data: object | null,
+      destroy: GLib.DestroyNotify | null
+    ): void;
+    set_sort_column_id(sort_column_id: number, order: SortType): void;
+    set_sort_func(
+      sort_column_id: number,
+      sort_func: TreeIterCompareFunc,
+      user_data: object | null,
+      destroy: GLib.DestroyNotify | null
+    ): void;
+    sort_column_changed(): void;
+  }
   export class AboutDialog extends Dialog {
     constructor();
     artists: string[];
@@ -1415,6 +1608,8 @@ declare module 'gnome-gtk' {
     website: string;
     'website-label': string;
     'wrap-license': boolean;
+    static parent_instance: Dialog;
+    static priv: AboutDialogPrivate;
     add_credit_section(section_name: string, people: string[]): void;
     get_artists(): string[];
     get_authors(): string[];
@@ -1490,6 +1685,8 @@ declare module 'gnome-gtk' {
     constructor(string: string);
     'accel-closure': GObject.Closure;
     'accel-widget': Widget;
+    static label: Label;
+    static priv: AccelLabelPrivate;
     get_accel(
       accelerator_key: number,
       accelerator_mods: Gdk.ModifierType
@@ -1536,8 +1733,10 @@ declare module 'gnome-gtk' {
     widget: Widget;
     static parent: Atk.Object;
     static priv: AccessiblePrivate;
+    connect_widget_destroyed(): void;
     get_widget(): Widget | null;
     set_widget(widget: Widget | null): void;
+    connect_widget_destroyed(): void;
     widget_set(): void;
     widget_unset(): void;
   }
@@ -1566,9 +1765,13 @@ declare module 'gnome-gtk' {
     'visible-vertical': boolean;
     static object: GObject.Object;
     static private_data: ActionPrivate;
+    activate(): void;
     block_activate(): void;
     connect_accelerator(): void;
     create_icon(icon_size: IconSize): Widget;
+    create_menu(): Widget;
+    create_menu_item(): Widget;
+    create_tool_item(): Widget;
     disconnect_accelerator(): void;
     get_accel_closure(): GObject.Closure;
     get_accel_path(): string;
@@ -1603,7 +1806,11 @@ declare module 'gnome-gtk' {
     set_visible_horizontal(visible_horizontal: boolean): void;
     set_visible_vertical(visible_vertical: boolean): void;
     unblock_activate(): void;
+    activate(): void;
     connect_proxy(proxy: Widget): void;
+    create_menu(): Widget;
+    create_menu_item(): Widget;
+    create_tool_item(): Widget;
     disconnect_proxy(proxy: Widget): void;
   }
   export class ActionBar extends Bin {
@@ -1662,6 +1869,7 @@ declare module 'gnome-gtk' {
       destroy: GLib.DestroyNotify | null
     ): void;
     get_accel_group(): AccelGroup;
+    get_action(action_name: string): Action;
     get_name(): string;
     get_sensitive(): boolean;
     get_visible(): boolean;
@@ -1677,6 +1885,7 @@ declare module 'gnome-gtk' {
     set_translation_domain(domain: string | null): void;
     set_visible(visible: boolean): void;
     translate_string(string: string): string;
+    get_action(action_name: string): Action;
   }
   export class Adjustment extends GObject.InitiallyUnowned {
     constructor(
@@ -1695,6 +1904,7 @@ declare module 'gnome-gtk' {
     value: number;
     static parent_instance: GObject.InitiallyUnowned;
     static priv: AdjustmentPrivate;
+    changed(): void;
     clamp_page(lower: number, upper: number): void;
     configure(
       value: number,
@@ -1717,6 +1927,9 @@ declare module 'gnome-gtk' {
     set_step_increment(step_increment: number): void;
     set_upper(upper: number): void;
     set_value(value: number): void;
+    value_changed(): void;
+    changed(): void;
+    value_changed(): void;
   }
   export class Alignment extends Bin {
     constructor(xalign: number, yalign: number, xscale: number, yscale: number);
@@ -1729,6 +1942,7 @@ declare module 'gnome-gtk' {
     yalign: number;
     yscale: number;
     static bin: Bin;
+    static priv: AlignmentPrivate;
     get_padding(
       padding_top?: number,
       padding_bottom?: number,
@@ -1748,6 +1962,8 @@ declare module 'gnome-gtk' {
     heading: string;
     'show-default-item': boolean;
     'show-dialog-item': boolean;
+    static parent: ComboBox;
+    static priv: AppChooserButtonPrivate;
     append_custom_item(name: string, label: string, icon: Gio.Icon): void;
     append_separator(): void;
     get_heading(): string | null;
@@ -1763,6 +1979,8 @@ declare module 'gnome-gtk' {
     constructor(parent: Window | null, flags: DialogFlags, file: Gio.File);
     gfile: Gio.File;
     heading: string;
+    static parent: Dialog;
+    static priv: AppChooserDialogPrivate;
     get_heading(): string | null;
     get_widget(): Widget;
     set_heading(heading: string): void;
@@ -1775,6 +1993,8 @@ declare module 'gnome-gtk' {
     'show-fallback': boolean;
     'show-other': boolean;
     'show-recommended': boolean;
+    static parent: Box;
+    static priv: AppChooserWidgetPrivate;
     get_default_text(): string;
     get_show_all(): boolean;
     get_show_default(): boolean;
@@ -1837,6 +2057,8 @@ declare module 'gnome-gtk' {
   export class ApplicationWindow extends Window {
     constructor(application: Application);
     'show-menubar': boolean;
+    static parent_instance: Window;
+    static priv: ApplicationWindowPrivate;
     get_help_overlay(): ShortcutsWindow | null;
     get_id(): number;
     get_show_menubar(): boolean;
@@ -1848,9 +2070,13 @@ declare module 'gnome-gtk' {
     'arrow-type': ArrowType;
     'shadow-type': ShadowType;
     static misc: Misc;
+    static priv: ArrowPrivate;
     set(arrow_type: ArrowType, shadow_type: ShadowType): void;
   }
-  export class ArrowAccessible extends WidgetAccessible {}
+  export class ArrowAccessible extends WidgetAccessible {
+    static parent: WidgetAccessible;
+    static priv: ArrowAccessiblePrivate;
+  }
   export class AspectFrame extends Frame {
     constructor(
       label: string | null,
@@ -1864,6 +2090,7 @@ declare module 'gnome-gtk' {
     xalign: number;
     yalign: number;
     static frame: Frame;
+    static priv: AspectFramePrivate;
     set(
       xalign: number,
       yalign: number,
@@ -1874,6 +2101,8 @@ declare module 'gnome-gtk' {
   export class Assistant extends Window {
     constructor();
     'use-header-bar': number;
+    static parent: Window;
+    static priv: AssistantPrivate;
     add_action_widget(child: Widget): void;
     append_page(page: Widget): number;
     commit(): void;
@@ -1907,19 +2136,25 @@ declare module 'gnome-gtk' {
     update_buttons_state(): void;
     apply(): void;
     cancel(): void;
+    close(): void;
     prepare(page: Widget): void;
   }
   export class Bin extends Container {
     static container: Container;
+    static priv: BinPrivate;
     get_child(): Widget | null;
   }
-  export class BooleanCellAccessible extends RendererCellAccessible {}
+  export class BooleanCellAccessible extends RendererCellAccessible {
+    static parent: RendererCellAccessible;
+    static priv: BooleanCellAccessiblePrivate;
+  }
   export class Box extends Container {
     constructor(orientation: Orientation, spacing: number);
     'baseline-position': BaselinePosition;
     homogeneous: boolean;
     spacing: number;
     static container: Container;
+    static priv: BoxPrivate;
     get_baseline_position(): BaselinePosition;
     get_center_widget(): Widget | null;
     get_homogeneous(): boolean;
@@ -1999,6 +2234,7 @@ declare module 'gnome-gtk' {
     get_object(name: string): GObject.Object | null;
     get_objects(): GLib.SList;
     get_translation_domain(): string;
+    get_type_from_name(type_name: string): any;
     lookup_callback_symbol(callback_name: string): GObject.Callback | null;
     set_application(application: Application): void;
     set_translation_domain(domain: string | null): void;
@@ -2012,6 +2248,7 @@ declare module 'gnome-gtk' {
       string: string,
       value: GObject.Value
     ): boolean;
+    get_type_from_name(type_name: string): any;
   }
   export class Button extends Bin {
     constructor();
@@ -2025,29 +2262,47 @@ declare module 'gnome-gtk' {
     xalign: number;
     yalign: number;
     static bin: Bin;
+    static priv: ButtonPrivate;
+    clicked(): void;
+    enter(): void;
     get_alignment(xalign: number, yalign: number): void;
     get_always_show_image(): boolean;
     get_event_window(): Gdk.Window;
+    get_focus_on_click(): boolean;
     get_image(): Widget | null;
     get_image_position(): PositionType;
     get_label(): string;
     get_relief(): ReliefStyle;
     get_use_stock(): boolean;
     get_use_underline(): boolean;
+    leave(): void;
+    pressed(): void;
+    released(): void;
     set_alignment(xalign: number, yalign: number): void;
     set_always_show_image(always_show: boolean): void;
+    set_focus_on_click(focus_on_click: boolean): void;
     set_image(image: Widget | null): void;
     set_image_position(position: PositionType): void;
     set_label(label: string): void;
     set_relief(relief: ReliefStyle): void;
     set_use_stock(use_stock: boolean): void;
     set_use_underline(use_underline: boolean): void;
+    activate(): void;
+    clicked(): void;
+    enter(): void;
+    leave(): void;
+    pressed(): void;
+    released(): void;
   }
-  export class ButtonAccessible extends ContainerAccessible {}
+  export class ButtonAccessible extends ContainerAccessible {
+    static parent: ContainerAccessible;
+    static priv: ButtonAccessiblePrivate;
+  }
   export class ButtonBox extends Box {
     constructor(orientation: Orientation);
     'layout-style': ButtonBoxStyle;
     static box: Box;
+    static priv: ButtonBoxPrivate;
     get_child_non_homogeneous(child: Widget): boolean;
     get_child_secondary(child: Widget): boolean;
     get_layout(): ButtonBoxStyle;
@@ -2068,6 +2323,7 @@ declare module 'gnome-gtk' {
     'show-week-numbers': boolean;
     year: number;
     static widget: Widget;
+    static priv: CalendarPrivate;
     clear_marks(): void;
     get_date(year?: number, month?: number, day?: number): void;
     get_day_is_marked(day: number): boolean;
@@ -2095,6 +2351,8 @@ declare module 'gnome-gtk' {
     prev_year(): void;
   }
   export class CellAccessible extends Accessible {
+    static parent: Accessible;
+    static priv: CellAccessiblePrivate;
     update_cache(emit_signal: boolean): void;
   }
   export class CellArea extends GObject.InitiallyUnowned {
@@ -2103,6 +2361,13 @@ declare module 'gnome-gtk' {
     'focus-cell': CellRenderer;
     static parent_instance: GObject.InitiallyUnowned;
     static priv: CellAreaPrivate;
+    activate(
+      context: CellAreaContext,
+      widget: Widget,
+      cell_area: Gdk.Rectangle,
+      flags: CellRendererState,
+      edit_only: boolean
+    ): boolean;
     activate_cell(
       widget: Widget,
       renderer: CellRenderer,
@@ -2110,11 +2375,18 @@ declare module 'gnome-gtk' {
       cell_area: Gdk.Rectangle,
       flags: CellRendererState
     ): boolean;
+    add(renderer: CellRenderer): void;
     add_focus_sibling(renderer: CellRenderer, sibling: CellRenderer): void;
     add_with_properties(
       renderer: CellRenderer,
       first_prop_name: string,
       ...args: any[]
+    ): void;
+    apply_attributes(
+      tree_model: any,
+      iter: TreeIter,
+      is_expander: boolean,
+      is_expanded: boolean
     ): void;
     attribute_connect(
       renderer: CellRenderer,
@@ -2153,6 +2425,25 @@ declare module 'gnome-gtk' {
       first_property_name: string,
       var_args: any
     ): void;
+    copy_context(context: CellAreaContext): CellAreaContext;
+    create_context(): CellAreaContext;
+    event(
+      context: CellAreaContext,
+      widget: Widget,
+      event: Gdk.Event,
+      cell_area: Gdk.Rectangle,
+      flags: CellRendererState
+    ): number;
+    focus(direction: DirectionType): boolean;
+    foreach(callback: CellCallback, callback_data: object | null): void;
+    foreach_alloc(
+      context: CellAreaContext,
+      widget: Widget,
+      cell_area: Gdk.Rectangle,
+      background_area: Gdk.Rectangle,
+      callback: CellAllocCallback,
+      callback_data: object | null
+    ): void;
     get_cell_allocation(
       context: CellAreaContext,
       widget: Widget,
@@ -2174,14 +2465,52 @@ declare module 'gnome-gtk' {
     get_focus_cell(): CellRenderer;
     get_focus_from_sibling(renderer: CellRenderer): CellRenderer | null;
     get_focus_siblings(renderer: CellRenderer): GLib.List;
+    get_preferred_height(
+      context: CellAreaContext,
+      widget: Widget,
+      minimum_height?: number,
+      natural_height?: number
+    ): void;
+    get_preferred_height_for_width(
+      context: CellAreaContext,
+      widget: Widget,
+      width: number,
+      minimum_height?: number,
+      natural_height?: number
+    ): void;
+    get_preferred_width(
+      context: CellAreaContext,
+      widget: Widget,
+      minimum_width?: number,
+      natural_width?: number
+    ): void;
+    get_preferred_width_for_height(
+      context: CellAreaContext,
+      widget: Widget,
+      height: number,
+      minimum_width?: number,
+      natural_width?: number
+    ): void;
+    get_request_mode(): SizeRequestMode;
     has_renderer(renderer: CellRenderer): boolean;
     inner_cell_area(
       widget: Widget,
       cell_area: Gdk.Rectangle,
       inner_area: Gdk.Rectangle
     ): void;
+    is_activatable(): boolean;
     is_focus_sibling(renderer: CellRenderer, sibling: CellRenderer): boolean;
+    remove(renderer: CellRenderer): void;
     remove_focus_sibling(renderer: CellRenderer, sibling: CellRenderer): void;
+    render(
+      context: CellAreaContext,
+      widget: Widget,
+      cr: cairo.Context,
+      background_area: Gdk.Rectangle,
+      cell_area: Gdk.Rectangle,
+      flags: CellRendererState,
+      paint_focus: boolean
+    ): void;
     request_renderer(
       renderer: CellRenderer,
       orientation: Orientation,
@@ -2192,11 +2521,82 @@ declare module 'gnome-gtk' {
     ): void;
     set_focus_cell(renderer: CellRenderer): void;
     stop_editing(canceled: boolean): void;
+    activate(
+      context: CellAreaContext,
+      widget: Widget,
+      cell_area: Gdk.Rectangle,
+      flags: CellRendererState,
+      edit_only: boolean
+    ): boolean;
+    add(renderer: CellRenderer): void;
+    apply_attributes(
+      tree_model: any,
+      iter: TreeIter,
+      is_expander: boolean,
+      is_expanded: boolean
+    ): void;
+    copy_context(context: CellAreaContext): CellAreaContext;
+    create_context(): CellAreaContext;
+    event(
+      context: CellAreaContext,
+      widget: Widget,
+      event: Gdk.Event,
+      cell_area: Gdk.Rectangle,
+      flags: CellRendererState
+    ): number;
+    focus(direction: DirectionType): boolean;
+    foreach(callback: CellCallback, callback_data: object | null): void;
+    foreach_alloc(
+      context: CellAreaContext,
+      widget: Widget,
+      cell_area: Gdk.Rectangle,
+      background_area: Gdk.Rectangle,
+      callback: CellAllocCallback,
+      callback_data: object | null
+    ): void;
     get_cell_property(
       renderer: CellRenderer,
       property_id: number,
       value: GObject.Value,
       pspec: GObject.ParamSpec
+    ): void;
+    get_preferred_height(
+      context: CellAreaContext,
+      widget: Widget,
+      minimum_height?: number,
+      natural_height?: number
+    ): void;
+    get_preferred_height_for_width(
+      context: CellAreaContext,
+      widget: Widget,
+      width: number,
+      minimum_height?: number,
+      natural_height?: number
+    ): void;
+    get_preferred_width(
+      context: CellAreaContext,
+      widget: Widget,
+      minimum_width?: number,
+      natural_width?: number
+    ): void;
+    get_preferred_width_for_height(
+      context: CellAreaContext,
+      widget: Widget,
+      height: number,
+      minimum_width?: number,
+      natural_width?: number
+    ): void;
+    get_request_mode(): SizeRequestMode;
+    is_activatable(): boolean;
+    remove(renderer: CellRenderer): void;
+    render(
+      context: CellAreaContext,
+      widget: Widget,
+      cr: cairo.Context,
+      background_area: Gdk.Rectangle,
+      cell_area: Gdk.Rectangle,
+      flags: CellRendererState,
+      paint_focus: boolean
     ): void;
     set_cell_property(
       renderer: CellRenderer,
@@ -2208,6 +2608,8 @@ declare module 'gnome-gtk' {
   export class CellAreaBox extends CellArea {
     constructor();
     spacing: number;
+    static parent_instance: CellArea;
+    static priv: CellAreaBoxPrivate;
     get_spacing(): number;
     pack_end(
       renderer: CellRenderer,
@@ -2231,15 +2633,39 @@ declare module 'gnome-gtk' {
     'natural-width': number;
     static parent_instance: GObject.Object;
     static priv: CellAreaContextPrivate;
+    allocate(width: number, height: number): void;
     get_allocation(width?: number, height?: number): void;
     get_area(): CellArea;
     get_preferred_height(
       minimum_height?: number,
       natural_height?: number
     ): void;
+    get_preferred_height_for_width(
+      width: number,
+      minimum_height?: number,
+      natural_height?: number
+    ): void;
     get_preferred_width(minimum_width?: number, natural_width?: number): void;
+    get_preferred_width_for_height(
+      height: number,
+      minimum_width?: number,
+      natural_width?: number
+    ): void;
     push_preferred_height(minimum_height: number, natural_height: number): void;
     push_preferred_width(minimum_width: number, natural_width: number): void;
+    reset(): void;
+    allocate(width: number, height: number): void;
+    get_preferred_height_for_width(
+      width: number,
+      minimum_height?: number,
+      natural_height?: number
+    ): void;
+    get_preferred_width_for_height(
+      height: number,
+      minimum_width?: number,
+      natural_width?: number
+    ): void;
+    reset(): void;
   }
   export class CellRenderer extends GObject.InitiallyUnowned {
     'cell-background': string;
@@ -2260,26 +2686,146 @@ declare module 'gnome-gtk' {
     ypad: number;
     static parent_instance: GObject.InitiallyUnowned;
     static priv: CellRendererPrivate;
+    activate(
+      event: Gdk.Event,
+      widget: Widget,
+      path: string,
+      background_area: Gdk.Rectangle,
+      cell_area: Gdk.Rectangle,
+      flags: CellRendererState
+    ): boolean;
+    get_aligned_area(
+      widget: Widget,
+      flags: CellRendererState,
+      cell_area: Gdk.Rectangle,
+      aligned_area: Gdk.Rectangle
+    ): void;
     get_alignment(xalign?: number, yalign?: number): void;
     get_fixed_size(width?: number, height?: number): void;
     get_padding(xpad?: number, ypad?: number): void;
+    get_preferred_height(
+      widget: Widget,
+      minimum_size?: number,
+      natural_size?: number
+    ): void;
+    get_preferred_height_for_width(
+      widget: Widget,
+      width: number,
+      minimum_height?: number,
+      natural_height?: number
+    ): void;
     get_preferred_size(
       widget: Widget,
       minimum_size?: Requisition,
       natural_size?: Requisition
     ): void;
+    get_preferred_width(
+      widget: Widget,
+      minimum_size?: number,
+      natural_size?: number
+    ): void;
+    get_preferred_width_for_height(
+      widget: Widget,
+      height: number,
+      minimum_width?: number,
+      natural_width?: number
+    ): void;
+    get_request_mode(): SizeRequestMode;
     get_sensitive(): boolean;
+    get_size(
+      widget: Widget,
+      cell_area: Gdk.Rectangle | null,
+      x_offset?: number,
+      y_offset?: number,
+      width?: number,
+      height?: number
+    ): void;
     get_state(widget: Widget | null, cell_state: CellRendererState): StateFlags;
     get_visible(): boolean;
     is_activatable(): boolean;
+    render(
+      cr: cairo.Context,
+      widget: Widget,
+      background_area: Gdk.Rectangle,
+      cell_area: Gdk.Rectangle,
+      flags: CellRendererState
+    ): void;
     set_alignment(xalign: number, yalign: number): void;
     set_fixed_size(width: number, height: number): void;
     set_padding(xpad: number, ypad: number): void;
     set_sensitive(sensitive: boolean): void;
     set_visible(visible: boolean): void;
+    start_editing(
+      event: Gdk.Event | null,
+      widget: Widget,
+      path: string,
+      background_area: Gdk.Rectangle,
+      cell_area: Gdk.Rectangle,
+      flags: CellRendererState
+    ): any | null;
     stop_editing(canceled: boolean): void;
+    activate(
+      event: Gdk.Event,
+      widget: Widget,
+      path: string,
+      background_area: Gdk.Rectangle,
+      cell_area: Gdk.Rectangle,
+      flags: CellRendererState
+    ): boolean;
     editing_canceled(): void;
     editing_started(editable: any, path: string): void;
+    get_aligned_area(
+      widget: Widget,
+      flags: CellRendererState,
+      cell_area: Gdk.Rectangle,
+      aligned_area: Gdk.Rectangle
+    ): void;
+    get_preferred_height(
+      widget: Widget,
+      minimum_size?: number,
+      natural_size?: number
+    ): void;
+    get_preferred_height_for_width(
+      widget: Widget,
+      width: number,
+      minimum_height?: number,
+      natural_height?: number
+    ): void;
+    get_preferred_width(
+      widget: Widget,
+      minimum_size?: number,
+      natural_size?: number
+    ): void;
+    get_preferred_width_for_height(
+      widget: Widget,
+      height: number,
+      minimum_width?: number,
+      natural_width?: number
+    ): void;
+    get_request_mode(): SizeRequestMode;
+    get_size(
+      widget: Widget,
+      cell_area: Gdk.Rectangle | null,
+      x_offset?: number,
+      y_offset?: number,
+      width?: number,
+      height?: number
+    ): void;
+    render(
+      cr: cairo.Context,
+      widget: Widget,
+      background_area: Gdk.Rectangle,
+      cell_area: Gdk.Rectangle,
+      flags: CellRendererState
+    ): void;
+    start_editing(
+      event: Gdk.Event | null,
+      widget: Widget,
+      path: string,
+      background_area: Gdk.Rectangle,
+      cell_area: Gdk.Rectangle,
+      flags: CellRendererState
+    ): any | null;
   }
   export class CellRendererAccel extends CellRendererText {
     constructor();
@@ -2287,6 +2833,8 @@ declare module 'gnome-gtk' {
     'accel-mode': CellRendererAccelMode;
     'accel-mods': Gdk.ModifierType;
     keycode: number;
+    static parent: CellRendererText;
+    static priv: CellRendererAccelPrivate;
     accel_cleared(path_string: string): void;
     accel_edited(
       path_string: string,
@@ -2300,6 +2848,8 @@ declare module 'gnome-gtk' {
     'has-entry': boolean;
     model: any;
     'text-column': number;
+    static parent: CellRendererText;
+    static priv: CellRendererComboPrivate;
   }
   export class CellRendererPixbuf extends CellRenderer {
     constructor();
@@ -2314,6 +2864,7 @@ declare module 'gnome-gtk' {
     'stock-size': number;
     surface: cairo.Surface;
     static parent: CellRenderer;
+    static priv: CellRendererPixbufPrivate;
   }
   export class CellRendererProgress extends CellRenderer {
     constructor();
@@ -2323,12 +2874,16 @@ declare module 'gnome-gtk' {
     'text-xalign': number;
     'text-yalign': number;
     value: number;
+    static parent_instance: CellRenderer;
+    static priv: CellRendererProgressPrivate;
   }
   export class CellRendererSpin extends CellRendererText {
     constructor();
     adjustment: Adjustment;
     'climb-rate': number;
     digits: number;
+    static parent: CellRendererText;
+    static priv: CellRendererSpinPrivate;
   }
   export class CellRendererSpinner extends CellRenderer {
     constructor();
@@ -2336,6 +2891,7 @@ declare module 'gnome-gtk' {
     pulse: number;
     size: IconSize;
     static parent: CellRenderer;
+    static priv: CellRendererSpinnerPrivate;
   }
   export class CellRendererText extends CellRenderer {
     constructor();
@@ -2388,6 +2944,7 @@ declare module 'gnome-gtk' {
     'wrap-mode': Pango.WrapMode;
     'wrap-width': number;
     static parent: CellRenderer;
+    static priv: CellRendererTextPrivate;
     set_fixed_height_from_font(number_of_rows: number): void;
     edited(path: string, new_text: string): void;
   }
@@ -2399,6 +2956,7 @@ declare module 'gnome-gtk' {
     'indicator-size': number;
     radio: boolean;
     static parent: CellRenderer;
+    static priv: CellRendererTogglePrivate;
     get_activatable(): boolean;
     get_active(): boolean;
     get_radio(): boolean;
@@ -2418,6 +2976,8 @@ declare module 'gnome-gtk' {
     'draw-sensitive': boolean;
     'fit-model': boolean;
     model: any;
+    static parent_instance: Widget;
+    static priv: CellViewPrivate;
     get_displayed_row(): TreePath | null;
     get_draw_sensitive(): boolean;
     get_fit_model(): boolean;
@@ -2441,15 +3001,21 @@ declare module 'gnome-gtk' {
     'draw-as-radio': boolean;
     inconsistent: boolean;
     static menu_item: MenuItem;
+    static priv: CheckMenuItemPrivate;
     get_active(): boolean;
     get_draw_as_radio(): boolean;
     get_inconsistent(): boolean;
     set_active(is_active: boolean): void;
     set_draw_as_radio(draw_as_radio: boolean): void;
     set_inconsistent(setting: boolean): void;
+    toggled(): void;
     draw_indicator(cr: cairo.Context): void;
+    toggled(): void;
   }
-  export class CheckMenuItemAccessible extends MenuItemAccessible {}
+  export class CheckMenuItemAccessible extends MenuItemAccessible {
+    static parent: MenuItemAccessible;
+    static priv: CheckMenuItemAccessiblePrivate;
+  }
   export class Clipboard extends GObject.Object {
     clear(): void;
     get_display(): Gdk.Display;
@@ -2530,6 +3096,7 @@ declare module 'gnome-gtk' {
     title: string;
     'use-alpha': boolean;
     static button: Button;
+    static priv: ColorButtonPrivate;
     get_alpha(): number;
     get_color(color: Gdk.Color): void;
     get_rgba(rgba: Gdk.RGBA): void;
@@ -2545,10 +3112,14 @@ declare module 'gnome-gtk' {
   export class ColorChooserDialog extends Dialog {
     constructor(title: string | null, parent: Window | null);
     'show-editor': boolean;
+    static parent_instance: Dialog;
+    static priv: ColorChooserDialogPrivate;
   }
   export class ColorChooserWidget extends Box {
     constructor();
     'show-editor': boolean;
+    static parent_instance: Box;
+    static priv: ColorChooserWidgetPrivate;
   }
   export class ColorSelection extends Box {
     constructor();
@@ -2557,6 +3128,7 @@ declare module 'gnome-gtk' {
     'current-rgba': Gdk.RGBA;
     'has-opacity-control': boolean;
     'has-palette': boolean;
+    static parent_instance: Box;
     static private_data: ColorSelectionPrivate;
     get_current_alpha(): number;
     get_current_color(color: Gdk.Color): void;
@@ -2592,6 +3164,8 @@ declare module 'gnome-gtk' {
     'color-selection': Widget;
     'help-button': Widget;
     'ok-button': Widget;
+    static parent_instance: Dialog;
+    static priv: ColorSelectionDialogPrivate;
     get_color_selection(): Widget;
   }
   export class ComboBox extends Bin {
@@ -2612,6 +3186,8 @@ declare module 'gnome-gtk' {
     'row-span-column': number;
     'tearoff-title': string;
     'wrap-width': number;
+    static parent_instance: Bin;
+    static priv: ComboBoxPrivate;
     get_active(): number;
     get_active_id(): string | null;
     get_active_iter(iter: TreeIter): boolean;
@@ -2619,6 +3195,7 @@ declare module 'gnome-gtk' {
     get_button_sensitivity(): SensitivityType;
     get_column_span_column(): number;
     get_entry_text_column(): number;
+    get_focus_on_click(): boolean;
     get_has_entry(): boolean;
     get_id_column(): number;
     get_model(): any;
@@ -2638,6 +3215,7 @@ declare module 'gnome-gtk' {
     set_button_sensitivity(sensitivity: SensitivityType): void;
     set_column_span_column(column_span: number): void;
     set_entry_text_column(text_column: number): void;
+    set_focus_on_click(focus_on_click: boolean): void;
     set_id_column(id_column: number): void;
     set_model(model: any | null): void;
     set_popup_fixed_width(fixed: boolean): void;
@@ -2652,9 +3230,14 @@ declare module 'gnome-gtk' {
     changed(): void;
     format_entry_text(path: string): string;
   }
-  export class ComboBoxAccessible extends ContainerAccessible {}
+  export class ComboBoxAccessible extends ContainerAccessible {
+    static parent: ContainerAccessible;
+    static priv: ComboBoxAccessiblePrivate;
+  }
   export class ComboBoxText extends ComboBox {
     constructor();
+    static parent_instance: ComboBox;
+    static priv: ComboBoxTextPrivate;
     append(id: string | null, text: string): void;
     append_text(text: string): void;
     get_active_text(): string;
@@ -2662,6 +3245,7 @@ declare module 'gnome-gtk' {
     insert_text(position: number, text: string): void;
     prepend(id: string | null, text: string): void;
     prepend_text(text: string): void;
+    remove(position: number): void;
     remove_all(): void;
   }
   export class Container extends Widget {
@@ -2669,11 +3253,14 @@ declare module 'gnome-gtk' {
     child: Widget;
     'resize-mode': ResizeMode;
     static widget: Widget;
+    static priv: ContainerPrivate;
+    add(widget: Widget): void;
     add_with_properties(
       widget: Widget,
       first_prop_name: string,
       ...args: any[]
     ): void;
+    check_resize(): void;
     child_get(child: Widget, first_prop_name: string, ...args: any[]): void;
     child_get_property(
       child: Widget,
@@ -2685,6 +3272,7 @@ declare module 'gnome-gtk' {
       first_property_name: string,
       var_args: any
     ): void;
+    child_notify(child: Widget, child_property: string): void;
     child_notify_by_pspec(child: Widget, pspec: GObject.ParamSpec): void;
     child_set(child: Widget, first_prop_name: string, ...args: any[]): void;
     child_set_property(
@@ -2697,6 +3285,8 @@ declare module 'gnome-gtk' {
       first_property_name: string,
       var_args: any
     ): void;
+    child_type(): any;
+    forall(callback: Callback, callback_data: object | null): void;
     foreach(callback: Callback, callback_data: object | null): void;
     get_border_width(): number;
     get_children(): GLib.List;
@@ -2704,33 +3294,52 @@ declare module 'gnome-gtk' {
     get_focus_child(): Widget | null;
     get_focus_hadjustment(): Adjustment | null;
     get_focus_vadjustment(): Adjustment | null;
+    get_path_for_child(child: Widget): WidgetPath;
     get_resize_mode(): ResizeMode;
     propagate_draw(child: Widget, cr: cairo.Context): void;
+    remove(widget: Widget): void;
     resize_children(): void;
     set_border_width(border_width: number): void;
     set_focus_chain(focusable_widgets: GLib.List): void;
+    set_focus_child(child: Widget | null): void;
     set_focus_hadjustment(adjustment: Adjustment): void;
     set_focus_vadjustment(adjustment: Adjustment): void;
     set_reallocate_redraws(needs_redraws: boolean): void;
     set_resize_mode(resize_mode: ResizeMode): void;
     unset_focus_chain(): void;
+    add(widget: Widget): void;
+    check_resize(): void;
+    child_type(): any;
     composite_name(child: Widget): string;
+    forall(
+      include_internals: boolean,
+      callback: Callback,
+      callback_data: object | null
+    ): void;
     get_child_property(
       child: Widget,
       property_id: number,
       value: GObject.Value,
       pspec: GObject.ParamSpec
     ): void;
+    get_path_for_child(child: Widget): WidgetPath;
+    remove(widget: Widget): void;
     set_child_property(
       child: Widget,
       property_id: number,
       value: GObject.Value,
       pspec: GObject.ParamSpec
     ): void;
+    set_focus_child(child: Widget | null): void;
   }
-  export class ContainerAccessible extends WidgetAccessible {}
+  export class ContainerAccessible extends WidgetAccessible {
+    static parent: WidgetAccessible;
+    static priv: ContainerAccessiblePrivate;
+  }
   export class ContainerCellAccessible extends CellAccessible {
     constructor();
+    static parent: CellAccessible;
+    static priv: ContainerCellAccessiblePrivate;
     add_child(child: CellAccessible): void;
     get_children(): GLib.List;
     remove_child(child: CellAccessible): void;
@@ -2751,6 +3360,8 @@ declare module 'gnome-gtk' {
   export class Dialog extends Window {
     constructor();
     'use-header-bar': number;
+    static window: Window;
+    static priv: DialogPrivate;
     add_action_widget(child: Widget, response_id: ResponseType): void;
     add_button(button_text: string, response_id: ResponseType): Widget;
     add_buttons(first_button_text: string, ...args: any[]): void;
@@ -2759,6 +3370,7 @@ declare module 'gnome-gtk' {
     get_header_bar(): Widget;
     get_response_for_widget(widget: Widget): number;
     get_widget_for_response(response_id: ResponseType): Widget | null;
+    response(response_id: ResponseType): void;
     run(): number;
     set_alternative_button_order(
       first_response_id: number,
@@ -2770,6 +3382,8 @@ declare module 'gnome-gtk' {
     ): void;
     set_default_response(response_id: ResponseType): void;
     set_response_sensitive(response_id: ResponseType, setting: boolean): void;
+    close(): void;
+    response(response_id: ResponseType): void;
   }
   export class DrawingArea extends Widget {
     constructor();
@@ -2829,6 +3443,8 @@ declare module 'gnome-gtk' {
     visibility: boolean;
     'width-chars': number;
     xalign: number;
+    static parent_instance: Widget;
+    static priv: EntryPrivate;
     get_activates_default(): boolean;
     get_alignment(): number;
     get_attributes(): Pango.AttrList | null;
@@ -2928,6 +3544,7 @@ declare module 'gnome-gtk' {
     set_width_chars(n_chars: number): void;
     text_index_to_layout_index(text_index: number): number;
     unset_invisible_char(): void;
+    activate(): void;
     backspace(): void;
     copy_clipboard(): void;
     cut_clipboard(): void;
@@ -2950,7 +3567,10 @@ declare module 'gnome-gtk' {
     populate_popup(popup: Widget): void;
     toggle_overwrite(): void;
   }
-  export class EntryAccessible extends WidgetAccessible {}
+  export class EntryAccessible extends WidgetAccessible {
+    static parent: WidgetAccessible;
+    static priv: EntryAccessiblePrivate;
+  }
   export class EntryBuffer extends GObject.Object {
     constructor(initial_chars: string | null, n_initial_chars: number);
     length: number;
@@ -2958,13 +3578,21 @@ declare module 'gnome-gtk' {
     text: string;
     static parent_instance: GObject.Object;
     static priv: EntryBufferPrivate;
+    delete_text(position: number, n_chars: number): number;
     emit_deleted_text(position: number, n_chars: number): void;
     emit_inserted_text(position: number, chars: string, n_chars: number): void;
     get_bytes(): number;
+    get_length(): number;
     get_max_length(): number;
+    get_text(): string;
+    insert_text(position: number, chars: string, n_chars: number): number;
     set_max_length(max_length: number): void;
     set_text(chars: string, n_chars: number): void;
+    delete_text(position: number, n_chars: number): number;
     deleted_text(position: number, n_chars: number): void;
+    get_length(): number;
+    get_text(n_bytes: number): string;
+    insert_text(position: number, chars: string, n_chars: number): number;
     inserted_text(position: number, chars: string, n_chars: number): void;
   }
   export class EntryCompletion extends GObject.Object {
@@ -2995,6 +3623,7 @@ declare module 'gnome-gtk' {
     get_text_column(): number;
     insert_action_markup(index_: number, markup: string): void;
     insert_action_text(index_: number, text: string): void;
+    insert_prefix(): void;
     set_inline_completion(inline_completion: boolean): void;
     set_inline_selection(inline_selection: boolean): void;
     set_match_func(
@@ -3010,6 +3639,7 @@ declare module 'gnome-gtk' {
     set_text_column(column: number): void;
     action_activated(index_: number): void;
     cursor_on_match(model: any, iter: TreeIter): boolean;
+    insert_prefix(prefix: string): boolean;
     match_selected(model: any, iter: TreeIter): boolean;
     no_matches(): void;
   }
@@ -3019,6 +3649,7 @@ declare module 'gnome-gtk' {
     'above-child': boolean;
     'visible-window': boolean;
     static bin: Bin;
+    static priv: EventBoxPrivate;
     get_above_child(): boolean;
     get_visible_window(): boolean;
     set_above_child(above_child: boolean): void;
@@ -3060,6 +3691,7 @@ declare module 'gnome-gtk' {
     'use-markup': boolean;
     'use-underline': boolean;
     static bin: Bin;
+    static priv: ExpanderPrivate;
     get_expanded(): boolean;
     get_label(): string | null;
     get_label_fill(): boolean;
@@ -3076,15 +3708,23 @@ declare module 'gnome-gtk' {
     set_spacing(spacing: number): void;
     set_use_markup(use_markup: boolean): void;
     set_use_underline(use_underline: boolean): void;
+    activate(): void;
   }
-  export class ExpanderAccessible extends ContainerAccessible {}
+  export class ExpanderAccessible extends ContainerAccessible {
+    static parent: ContainerAccessible;
+    static priv: ExpanderAccessiblePrivate;
+  }
   export class FileChooserButton extends Box {
     constructor(title: string, action: FileChooserAction);
     dialog: any;
     title: string;
     'width-chars': number;
+    static parent: Box;
+    static priv: FileChooserButtonPrivate;
+    get_focus_on_click(): boolean;
     get_title(): string;
     get_width_chars(): number;
+    set_focus_on_click(focus_on_click: boolean): void;
     set_title(title: string): void;
     set_width_chars(n_chars: number): void;
     file_set(): void;
@@ -3097,6 +3737,8 @@ declare module 'gnome-gtk' {
       first_button_text: string | null,
       ...args: any[]
     );
+    static parent_instance: Dialog;
+    static priv: FileChooserDialogPrivate;
   }
   export class FileChooserNative extends NativeDialog {
     constructor(
@@ -3117,6 +3759,8 @@ declare module 'gnome-gtk' {
     constructor(action: FileChooserAction);
     'search-mode': boolean;
     subtitle: string;
+    static parent_instance: Box;
+    static priv: FileChooserWidgetPrivate;
   }
   export class FileFilter extends GObject.InitiallyUnowned {
     constructor();
@@ -3138,6 +3782,7 @@ declare module 'gnome-gtk' {
   export class Fixed extends Container {
     constructor();
     static container: Container;
+    static priv: FixedPrivate;
     move(widget: Widget, x: number, y: number): void;
     put(widget: Widget, x: number, y: number): void;
   }
@@ -3170,6 +3815,7 @@ declare module 'gnome-gtk' {
     insert(widget: Widget, position: number): void;
     invalidate_filter(): void;
     invalidate_sort(): void;
+    select_all(): void;
     select_child(child: FlowBoxChild): void;
     selected_foreach(func: FlowBoxForeachFunc, data: object | null): void;
     set_activate_on_single_click(single: boolean): void;
@@ -3191,21 +3837,31 @@ declare module 'gnome-gtk' {
       destroy: GLib.DestroyNotify
     ): void;
     set_vadjustment(adjustment: Adjustment): void;
+    unselect_all(): void;
     unselect_child(child: FlowBoxChild): void;
     activate_cursor_child(): void;
     child_activated(child: FlowBoxChild): void;
     move_cursor(step: MovementStep, count: number): boolean;
+    select_all(): void;
     selected_children_changed(): void;
     toggle_cursor_child(): void;
+    unselect_all(): void;
   }
-  export class FlowBoxAccessible extends ContainerAccessible {}
+  export class FlowBoxAccessible extends ContainerAccessible {
+    static parent: ContainerAccessible;
+    static priv: FlowBoxAccessiblePrivate;
+  }
   export class FlowBoxChild extends Bin {
     constructor();
+    static parent_instance: Bin;
     changed(): void;
     get_index(): number;
     is_selected(): boolean;
+    activate(): void;
   }
-  export class FlowBoxChildAccessible extends ContainerAccessible {}
+  export class FlowBoxChildAccessible extends ContainerAccessible {
+    static parent: ContainerAccessible;
+  }
   export class FontButton extends Button {
     constructor();
     'font-name': string;
@@ -3215,6 +3871,7 @@ declare module 'gnome-gtk' {
     'use-font': boolean;
     'use-size': boolean;
     static button: Button;
+    static priv: FontButtonPrivate;
     get_font_name(): string;
     get_show_size(): boolean;
     get_show_style(): boolean;
@@ -3231,15 +3888,21 @@ declare module 'gnome-gtk' {
   }
   export class FontChooserDialog extends Dialog {
     constructor(title: string | null, parent: Window | null);
+    static parent_instance: Dialog;
+    static priv: FontChooserDialogPrivate;
   }
   export class FontChooserWidget extends Box {
     constructor();
     'tweak-action': Gio.Action;
+    static parent_instance: Box;
+    static priv: FontChooserWidgetPrivate;
   }
   export class FontSelection extends Box {
     constructor();
     'font-name': string;
     'preview-text': string;
+    static parent_instance: Box;
+    static priv: FontSelectionPrivate;
     get_face(): Pango.FontFace;
     get_face_list(): Widget;
     get_family(): Pango.FontFamily;
@@ -3255,6 +3918,8 @@ declare module 'gnome-gtk' {
   }
   export class FontSelectionDialog extends Dialog {
     constructor(title: string);
+    static parent_instance: Dialog;
+    static priv: FontSelectionDialogPrivate;
     get_cancel_button(): Widget;
     get_font_name(): string;
     get_font_selection(): Widget;
@@ -3271,6 +3936,7 @@ declare module 'gnome-gtk' {
     'label-yalign': number;
     'shadow-type': ShadowType;
     static bin: Bin;
+    static priv: FramePrivate;
     get_label(): string | null;
     get_label_align(xalign?: number, yalign?: number): void;
     get_label_widget(): Widget | null;
@@ -3281,7 +3947,10 @@ declare module 'gnome-gtk' {
     set_shadow_type(type: ShadowType): void;
     compute_child_allocation(allocation: Allocation): void;
   }
-  export class FrameAccessible extends ContainerAccessible {}
+  export class FrameAccessible extends ContainerAccessible {
+    static parent: ContainerAccessible;
+    static priv: FrameAccessiblePrivate;
+  }
   export class GLArea extends Widget {
     constructor();
     'auto-render': boolean;
@@ -3290,6 +3959,7 @@ declare module 'gnome-gtk' {
     'has-depth-buffer': boolean;
     'has-stencil-buffer': boolean;
     'use-es': boolean;
+    static parent_instance: Widget;
     attach_buffers(): void;
     get_auto_render(): boolean;
     get_context(): Gdk.GLContext;
@@ -3401,6 +4071,7 @@ declare module 'gnome-gtk' {
     'row-homogeneous': boolean;
     'row-spacing': number;
     static container: Container;
+    static priv: GridPrivate;
     attach(
       child: Widget,
       left: number,
@@ -3448,6 +4119,8 @@ declare module 'gnome-gtk' {
   }
   export class HSV extends Widget {
     constructor();
+    static parent_instance: Widget;
+    static priv: HSVPrivate;
     get_color(h: number, s: number, v: number): void;
     get_metrics(size: number, ring_width: number): void;
     is_adjusting(): boolean;
@@ -3484,6 +4157,7 @@ declare module 'gnome-gtk' {
     'snap-edge': PositionType;
     'snap-edge-set': boolean;
     static bin: Bin;
+    static priv: HandleBoxPrivate;
     get_child_detached(): boolean;
     get_handle_position(): PositionType;
     get_shadow_type(): ShadowType;
@@ -3524,11 +4198,41 @@ declare module 'gnome-gtk' {
     'input-hints': InputHints;
     'input-purpose': InputPurpose;
     static parent_instance: GObject.Object;
+    delete_surrounding(offset: number, n_chars: number): boolean;
+    filter_keypress(event: Gdk.EventKey): boolean;
+    focus_in(): void;
+    focus_out(): void;
+    get_preedit_string(
+      str: string,
+      attrs: Pango.AttrList,
+      cursor_pos: number
+    ): void;
+    get_surrounding(text: string, cursor_index: number): boolean;
+    reset(): void;
+    set_client_window(window: Gdk.Window | null): void;
+    set_cursor_location(area: Gdk.Rectangle): void;
+    set_surrounding(text: string, len: number, cursor_index: number): void;
+    set_use_preedit(use_preedit: boolean): void;
     commit(str: string): void;
+    delete_surrounding(offset: number, n_chars: number): boolean;
+    filter_keypress(event: Gdk.EventKey): boolean;
+    focus_in(): void;
+    focus_out(): void;
+    get_preedit_string(
+      str: string,
+      attrs: Pango.AttrList,
+      cursor_pos: number
+    ): void;
+    get_surrounding(text: string, cursor_index: number): boolean;
     preedit_changed(): void;
     preedit_end(): void;
     preedit_start(): void;
+    reset(): void;
     retrieve_surrounding(): boolean;
+    set_client_window(window: Gdk.Window | null): void;
+    set_cursor_location(area: Gdk.Rectangle): void;
+    set_surrounding(text: string, len: number, cursor_index: number): void;
+    set_use_preedit(use_preedit: boolean): void;
   }
   export class IMContextSimple extends IMContext {
     constructor();
@@ -3702,6 +4406,7 @@ declare module 'gnome-gtk' {
     'item-orientation': Orientation;
     'item-padding': number;
     'item-width': number;
+    margin: number;
     'markup-column': number;
     model: any;
     'pixbuf-column': number;
@@ -3711,6 +4416,8 @@ declare module 'gnome-gtk' {
     spacing: number;
     'text-column': number;
     'tooltip-column': number;
+    static parent: Container;
+    static priv: IconViewPrivate;
     convert_widget_to_bin_window_coords(
       wx: number,
       wy: number,
@@ -3777,6 +4484,7 @@ declare module 'gnome-gtk' {
       iter?: TreeIter
     ): boolean;
     get_visible_range(start_path?: TreePath, end_path?: TreePath): boolean;
+    item_activated(path: TreePath): void;
     path_is_selected(path: TreePath): boolean;
     scroll_to_path(
       path: TreePath,
@@ -3784,6 +4492,7 @@ declare module 'gnome-gtk' {
       row_align: number,
       col_align: number
     ): void;
+    select_all(): void;
     select_path(path: TreePath): void;
     selected_foreach(func: IconViewForeachFunc, data: object | null): void;
     set_activate_on_single_click(single: boolean): void;
@@ -3814,16 +4523,23 @@ declare module 'gnome-gtk' {
     ): void;
     set_tooltip_column(column: number): void;
     set_tooltip_item(tooltip: Tooltip, path: TreePath): void;
+    unselect_all(): void;
     unselect_path(path: TreePath): void;
     unset_model_drag_dest(): void;
     unset_model_drag_source(): void;
     activate_cursor_item(): boolean;
+    item_activated(path: TreePath): void;
     move_cursor(step: MovementStep, count: number): boolean;
+    select_all(): void;
     select_cursor_item(): void;
     selection_changed(): void;
     toggle_cursor_item(): void;
+    unselect_all(): void;
   }
-  export class IconViewAccessible extends ContainerAccessible {}
+  export class IconViewAccessible extends ContainerAccessible {
+    static parent: ContainerAccessible;
+    static priv: IconViewAccessiblePrivate;
+  }
   export class Image extends Misc {
     constructor();
     file: string;
@@ -3840,6 +4556,7 @@ declare module 'gnome-gtk' {
     surface: cairo.Surface;
     'use-fallback': boolean;
     static misc: Misc;
+    static priv: ImagePrivate;
     clear(): void;
     get_animation(): GdkPixbuf.PixbufAnimation | null;
     get_gicon(gicon?: Gio.Icon, size?: IconSize): void;
@@ -3860,8 +4577,14 @@ declare module 'gnome-gtk' {
     set_from_surface(surface: cairo.Surface | null): void;
     set_pixel_size(pixel_size: number): void;
   }
-  export class ImageAccessible extends WidgetAccessible {}
-  export class ImageCellAccessible extends RendererCellAccessible {}
+  export class ImageAccessible extends WidgetAccessible {
+    static parent: WidgetAccessible;
+    static priv: ImageAccessiblePrivate;
+  }
+  export class ImageCellAccessible extends RendererCellAccessible {
+    static parent: RendererCellAccessible;
+    static priv: ImageCellAccessiblePrivate;
+  }
   export class ImageMenuItem extends MenuItem {
     constructor();
     'accel-group': AccelGroup;
@@ -3869,6 +4592,7 @@ declare module 'gnome-gtk' {
     image: Widget;
     'use-stock': boolean;
     static menu_item: MenuItem;
+    static priv: ImageMenuItemPrivate;
     get_always_show_image(): boolean;
     get_image(): Widget;
     get_use_stock(): boolean;
@@ -3882,6 +4606,8 @@ declare module 'gnome-gtk' {
     'message-type': MessageType;
     revealed: boolean;
     'show-close-button': boolean;
+    static parent: Box;
+    static priv: InfoBarPrivate;
     add_action_widget(child: Widget, response_id: ResponseType): void;
     add_button(button_text: string, response_id: ResponseType): Button;
     add_buttons(first_button_text: string, ...args: any[]): void;
@@ -3890,17 +4616,21 @@ declare module 'gnome-gtk' {
     get_message_type(): MessageType;
     get_revealed(): boolean;
     get_show_close_button(): boolean;
+    response(response_id: ResponseType): void;
     set_default_response(response_id: ResponseType): void;
     set_message_type(message_type: MessageType): void;
     set_response_sensitive(response_id: ResponseType, setting: boolean): void;
     set_revealed(revealed: boolean): void;
     set_show_close_button(setting: boolean): void;
     close(): void;
+    response(response_id: ResponseType): void;
   }
   export class Invisible extends Widget {
     constructor();
     screen: Gdk.Screen;
     static widget: Widget;
+    static priv: InvisiblePrivate;
+    get_screen(): Gdk.Screen;
     set_screen(screen: Gdk.Screen): void;
   }
   export class Label extends Misc {
@@ -3925,7 +4655,10 @@ declare module 'gnome-gtk' {
     'width-chars': number;
     wrap: boolean;
     'wrap-mode': Pango.WrapMode;
+    xalign: number;
+    yalign: number;
     static misc: Misc;
+    static priv: LabelPrivate;
     get_angle(): number;
     get_attributes(): Pango.AttrList | null;
     get_current_uri(): string;
@@ -3983,12 +4716,16 @@ declare module 'gnome-gtk' {
     ): void;
     populate_popup(menu: Menu): void;
   }
-  export class LabelAccessible extends WidgetAccessible {}
+  export class LabelAccessible extends WidgetAccessible {
+    static parent: WidgetAccessible;
+    static priv: LabelAccessiblePrivate;
+  }
   export class Layout extends Container {
     constructor(hadjustment: Adjustment | null, vadjustment: Adjustment | null);
     height: number;
     width: number;
     static container: Container;
+    static priv: LayoutPrivate;
     get_bin_window(): Gdk.Window;
     get_hadjustment(): Adjustment;
     get_size(width?: number, height?: number): void;
@@ -4006,6 +4743,8 @@ declare module 'gnome-gtk' {
     'min-value': number;
     mode: LevelBarMode;
     value: number;
+    static parent: Widget;
+    static priv: LevelBarPrivate;
     add_offset_value(name: string, value: number): void;
     get_inverted(): boolean;
     get_max_value(): number;
@@ -4021,22 +4760,31 @@ declare module 'gnome-gtk' {
     set_value(value: number): void;
     offset_changed(name: string): void;
   }
-  export class LevelBarAccessible extends WidgetAccessible {}
+  export class LevelBarAccessible extends WidgetAccessible {
+    static parent: WidgetAccessible;
+    static priv: LevelBarAccessiblePrivate;
+  }
   export class LinkButton extends Button {
     constructor(uri: string);
     uri: string;
     visited: boolean;
+    static parent_instance: Button;
+    static priv: LinkButtonPrivate;
     get_uri(): string;
     get_visited(): boolean;
     set_uri(uri: string): void;
     set_visited(visited: boolean): void;
     activate_link(): boolean;
   }
-  export class LinkButtonAccessible extends ButtonAccessible {}
+  export class LinkButtonAccessible extends ButtonAccessible {
+    static parent: ButtonAccessible;
+    static priv: LinkButtonAccessiblePrivate;
+  }
   export class ListBox extends Container {
     constructor();
     'activate-on-single-click': boolean;
     'selection-mode': SelectionMode;
+    static parent_instance: Container;
     bind_model(
       model: Gio.ListModel | null,
       create_widget_func: ListBoxCreateWidgetFunc | null,
@@ -4057,6 +4805,7 @@ declare module 'gnome-gtk' {
     invalidate_headers(): void;
     invalidate_sort(): void;
     prepend(child: Widget): void;
+    select_all(): void;
     select_row(row: ListBoxRow | null): void;
     selected_foreach(func: ListBoxForeachFunc, data: object | null): void;
     set_activate_on_single_click(single: boolean): void;
@@ -4078,19 +4827,26 @@ declare module 'gnome-gtk' {
       user_data: object | null,
       destroy: GLib.DestroyNotify
     ): void;
+    unselect_all(): void;
     unselect_row(row: ListBoxRow): void;
     activate_cursor_row(): void;
     move_cursor(step: MovementStep, count: number): void;
     row_activated(row: ListBoxRow): void;
     row_selected(row: ListBoxRow): void;
+    select_all(): void;
     selected_rows_changed(): void;
     toggle_cursor_row(): void;
+    unselect_all(): void;
   }
-  export class ListBoxAccessible extends ContainerAccessible {}
+  export class ListBoxAccessible extends ContainerAccessible {
+    static parent: ContainerAccessible;
+    static priv: ListBoxAccessiblePrivate;
+  }
   export class ListBoxRow extends Bin {
     constructor();
     activatable: boolean;
     selectable: boolean;
+    static parent_instance: Bin;
     changed(): void;
     get_activatable(): boolean;
     get_header(): Widget | null;
@@ -4100,8 +4856,11 @@ declare module 'gnome-gtk' {
     set_activatable(activatable: boolean): void;
     set_header(header: Widget | null): void;
     set_selectable(selectable: boolean): void;
+    activate(): void;
   }
-  export class ListBoxRowAccessible extends ContainerAccessible {}
+  export class ListBoxRowAccessible extends ContainerAccessible {
+    static parent: ContainerAccessible;
+  }
   export class ListStore extends GObject.Object {
     constructor(n_columns: number, ...args: any[]);
     static parent: GObject.Object;
@@ -4149,10 +4908,15 @@ declare module 'gnome-gtk' {
     'tooltip-lock': string;
     'tooltip-not-authorized': string;
     'tooltip-unlock': string;
+    static parent: Button;
+    static priv: LockButtonPrivate;
     get_permission(): Gio.Permission;
     set_permission(permission: Gio.Permission | null): void;
   }
-  export class LockButtonAccessible extends ButtonAccessible {}
+  export class LockButtonAccessible extends ButtonAccessible {
+    static parent: ButtonAccessible;
+    static priv: LockButtonAccessiblePrivate;
+  }
   export class Menu extends MenuShell {
     constructor();
     'accel-group': AccelGroup;
@@ -4168,6 +4932,7 @@ declare module 'gnome-gtk' {
     'tearoff-state': boolean;
     'tearoff-title': string;
     static menu_shell: MenuShell;
+    static priv: MenuPrivate;
     attach(
       child: Widget,
       left_attach: number,
@@ -4225,6 +4990,7 @@ declare module 'gnome-gtk' {
     reorder_child(child: Widget, position: number): void;
     reposition(): void;
     set_accel_group(accel_group: AccelGroup | null): void;
+    set_accel_path(accel_path: string | null): void;
     set_active(index: number): void;
     set_monitor(monitor_num: number): void;
     set_reserve_toggle_size(reserve_toggle_size: boolean): void;
@@ -4233,12 +4999,16 @@ declare module 'gnome-gtk' {
     set_title(title: string | null): void;
     static get_for_attach_widget(widget: Widget): GLib.List;
   }
-  export class MenuAccessible extends MenuShellAccessible {}
+  export class MenuAccessible extends MenuShellAccessible {
+    static parent: MenuShellAccessible;
+    static priv: MenuAccessiblePrivate;
+  }
   export class MenuBar extends MenuShell {
     constructor();
     'child-pack-direction': PackDirection;
     'pack-direction': PackDirection;
     static menu_shell: MenuShell;
+    static priv: MenuBarPrivate;
     get_child_pack_direction(): PackDirection;
     get_pack_direction(): PackDirection;
     set_child_pack_direction(child_pack_dir: PackDirection): void;
@@ -4252,18 +5022,25 @@ declare module 'gnome-gtk' {
     popover: Popover;
     popup: Menu;
     'use-popover': boolean;
+    static parent: ToggleButton;
+    static priv: MenuButtonPrivate;
     get_align_widget(): Widget | null;
+    get_direction(): ArrowType;
     get_menu_model(): Gio.MenuModel | null;
     get_popover(): Popover | null;
     get_popup(): Menu | null;
     get_use_popover(): boolean;
     set_align_widget(align_widget: Widget | null): void;
+    set_direction(direction: ArrowType): void;
     set_menu_model(menu_model: Gio.MenuModel | null): void;
     set_popover(popover: Widget | null): void;
     set_popup(menu: Widget | null): void;
     set_use_popover(use_popover: boolean): void;
   }
-  export class MenuButtonAccessible extends ToggleButtonAccessible {}
+  export class MenuButtonAccessible extends ToggleButtonAccessible {
+    static parent: ToggleButtonAccessible;
+    static priv: MenuButtonAccessiblePrivate;
+  }
   export class MenuItem extends Bin {
     constructor();
     'accel-path': string;
@@ -4272,21 +5049,41 @@ declare module 'gnome-gtk' {
     submenu: Menu;
     'use-underline': boolean;
     static bin: Bin;
+    static priv: MenuItemPrivate;
+    activate(): void;
+    deselect(): void;
     get_accel_path(): string | null;
+    get_label(): string;
     get_reserve_indicator(): boolean;
     get_right_justified(): boolean;
     get_submenu(): Widget | null;
     get_use_underline(): boolean;
+    select(): void;
+    set_accel_path(accel_path: string | null): void;
+    set_label(label: string): void;
     set_reserve_indicator(reserve: boolean): void;
     set_right_justified(right_justified: boolean): void;
     set_submenu(submenu: Menu | null): void;
     set_use_underline(setting: boolean): void;
+    toggle_size_allocate(allocation: number): void;
+    toggle_size_request(requisition: number): void;
+    activate(): void;
     activate_item(): void;
+    deselect(): void;
+    get_label(): string;
+    select(): void;
+    set_label(label: string): void;
+    toggle_size_allocate(allocation: number): void;
+    toggle_size_request(requisition: number): void;
   }
-  export class MenuItemAccessible extends ContainerAccessible {}
+  export class MenuItemAccessible extends ContainerAccessible {
+    static parent: ContainerAccessible;
+    static priv: MenuItemAccessiblePrivate;
+  }
   export class MenuShell extends Container {
     'take-focus': boolean;
     static container: Container;
+    static priv: MenuShellPrivate;
     activate_item(menu_item: Widget, force_deactivate: boolean): void;
     append(child: MenuItem): void;
     bind_model(
@@ -4294,23 +5091,36 @@ declare module 'gnome-gtk' {
       action_namespace: string | null,
       with_separators: boolean
     ): void;
+    cancel(): void;
+    deactivate(): void;
     deselect(): void;
     get_parent_shell(): Widget;
     get_selected_item(): Widget;
     get_take_focus(): boolean;
+    insert(child: Widget, position: number): void;
     prepend(child: Widget): void;
     select_first(search_sensitive: boolean): void;
+    select_item(menu_item: Widget): void;
     set_take_focus(take_focus: boolean): void;
     activate_current(force_hide: boolean): void;
+    cancel(): void;
+    deactivate(): void;
     get_popup_delay(): number;
+    insert(child: Widget, position: number): void;
     move_current(direction: MenuDirectionType): void;
     move_selected(distance: number): boolean;
+    select_item(menu_item: Widget): void;
     selection_done(): void;
   }
-  export class MenuShellAccessible extends ContainerAccessible {}
+  export class MenuShellAccessible extends ContainerAccessible {
+    static parent: ContainerAccessible;
+    static priv: MenuShellAccessiblePrivate;
+  }
   export class MenuToolButton extends ToolButton {
     constructor(icon_widget: Widget | null, label: string | null);
     menu: Menu;
+    static parent: ToolButton;
+    static priv: MenuToolButtonPrivate;
     get_menu(): Widget;
     set_arrow_tooltip_markup(markup: string): void;
     set_arrow_tooltip_text(text: string): void;
@@ -4334,6 +5144,8 @@ declare module 'gnome-gtk' {
     'secondary-use-markup': boolean;
     text: string;
     'use-markup': boolean;
+    static parent_instance: Dialog;
+    static priv: MessageDialogPrivate;
     format_secondary_markup(message_format: string, ...args: any[]): void;
     format_secondary_text(message_format: string | null, ...args: any[]): void;
     get_image(): Widget;
@@ -4347,6 +5159,7 @@ declare module 'gnome-gtk' {
     yalign: number;
     ypad: number;
     static widget: Widget;
+    static priv: MiscPrivate;
     get_alignment(xalign?: number, yalign?: number): void;
     get_padding(xpad?: number, ypad?: number): void;
     set_alignment(xalign: number, yalign: number): void;
@@ -4388,11 +5201,15 @@ declare module 'gnome-gtk' {
     get_title(): string | null;
     get_transient_for(): Window | null;
     get_visible(): boolean;
+    hide(): void;
     run(): number;
     set_modal(modal: boolean): void;
     set_title(title: string): void;
     set_transient_for(parent: Window | null): void;
+    show(): void;
+    hide(): void;
     response(response_id: ResponseType): void;
+    show(): void;
   }
   export class Notebook extends Container {
     constructor();
@@ -4404,6 +5221,7 @@ declare module 'gnome-gtk' {
     'show-tabs': boolean;
     'tab-pos': PositionType;
     static container: Container;
+    static priv: NotebookPrivate;
     append_page(child: Widget, tab_label: Widget | null): number;
     append_page_menu(
       child: Widget,
@@ -4428,6 +5246,11 @@ declare module 'gnome-gtk' {
     get_tab_pos(): PositionType;
     get_tab_reorderable(child: Widget): boolean;
     get_tab_vborder(): number;
+    insert_page(
+      child: Widget,
+      tab_label: Widget | null,
+      position: number
+    ): number;
     insert_page_menu(
       child: Widget,
       tab_label: Widget | null,
@@ -4463,6 +5286,12 @@ declare module 'gnome-gtk' {
     change_current_page(offset: number): boolean;
     create_window(page: Widget, x: number, y: number): Notebook;
     focus_tab(type: NotebookTab): boolean;
+    insert_page(
+      child: Widget,
+      tab_label: Widget,
+      menu_label: Widget,
+      position: number
+    ): number;
     move_focus_out(direction: DirectionType): void;
     page_added(child: Widget, page_num: number): void;
     page_removed(child: Widget, page_num: number): void;
@@ -4471,7 +5300,10 @@ declare module 'gnome-gtk' {
     select_page(move_focus: boolean): boolean;
     switch_page(page: Widget, page_num: number): void;
   }
-  export class NotebookAccessible extends ContainerAccessible {}
+  export class NotebookAccessible extends ContainerAccessible {
+    static parent: ContainerAccessible;
+    static priv: NotebookAccessiblePrivate;
+  }
   export class NotebookPageAccessible extends Atk.Object {
     constructor(notebook: NotebookAccessible, child: Widget);
     static parent: Atk.Object;
@@ -4510,6 +5342,8 @@ declare module 'gnome-gtk' {
   }
   export class Overlay extends Bin {
     constructor();
+    static parent: Bin;
+    static priv: OverlayPrivate;
     add_overlay(widget: Widget): void;
     get_overlay_pass_through(widget: Widget): boolean;
     reorder_overlay(child: Widget, position: number): void;
@@ -4563,6 +5397,7 @@ declare module 'gnome-gtk' {
     'position-set': boolean;
     'wide-handle': boolean;
     static container: Container;
+    static priv: PanedPrivate;
     add1(child: Widget): void;
     add2(child: Widget): void;
     get_child1(): Widget | null;
@@ -4581,7 +5416,10 @@ declare module 'gnome-gtk' {
     move_handle(scroll: ScrollType): boolean;
     toggle_handle_focus(): boolean;
   }
-  export class PanedAccessible extends ContainerAccessible {}
+  export class PanedAccessible extends ContainerAccessible {
+    static parent: ContainerAccessible;
+    static priv: PanedAccessiblePrivate;
+  }
   export class PlacesSidebar extends ScrolledWindow {
     constructor();
     'local-only': boolean;
@@ -4623,12 +5461,16 @@ declare module 'gnome-gtk' {
   }
   export class Plug extends Window {
     constructor(socket_id: xlib.Window);
+    embedded: boolean;
     'socket-window': Gdk.Window;
+    static window: Window;
+    static priv: PlugPrivate;
     construct(socket_id: xlib.Window): void;
     construct_for_display(display: Gdk.Display, socket_id: xlib.Window): void;
     get_embedded(): boolean;
     get_id(): xlib.Window;
     get_socket_window(): Gdk.Window | null;
+    embedded(): void;
   }
   export class Popover extends Bin {
     constructor(relative_to: Widget | null);
@@ -4638,6 +5480,8 @@ declare module 'gnome-gtk' {
     position: PositionType;
     'relative-to': Widget;
     'transitions-enabled': boolean;
+    static parent_instance: Bin;
+    static priv: PopoverPrivate;
     bind_model(
       model: Gio.MenuModel | null,
       action_namespace: string | null
@@ -4660,7 +5504,9 @@ declare module 'gnome-gtk' {
     set_transitions_enabled(transitions_enabled: boolean): void;
     closed(): void;
   }
-  export class PopoverAccessible extends ContainerAccessible {}
+  export class PopoverAccessible extends ContainerAccessible {
+    static parent: ContainerAccessible;
+  }
   export class PopoverMenu extends Popover {
     constructor();
     'visible-submenu': string;
@@ -4841,6 +5687,8 @@ declare module 'gnome-gtk' {
     'pulse-step': number;
     'show-text': boolean;
     text: string;
+    static parent: Widget;
+    static priv: ProgressBarPrivate;
     get_ellipsize(): Pango.EllipsizeMode;
     get_fraction(): number;
     get_inverted(): boolean;
@@ -4855,7 +5703,10 @@ declare module 'gnome-gtk' {
     set_show_text(show_text: boolean): void;
     set_text(text: string | null): void;
   }
-  export class ProgressBarAccessible extends WidgetAccessible {}
+  export class ProgressBarAccessible extends WidgetAccessible {
+    static parent: WidgetAccessible;
+    static priv: ProgressBarAccessiblePrivate;
+  }
   export class RadioAction extends ToggleAction {
     constructor(
       name: string,
@@ -4867,6 +5718,8 @@ declare module 'gnome-gtk' {
     'current-value': number;
     group: RadioAction;
     value: number;
+    static parent: ToggleAction;
+    static private_data: RadioActionPrivate;
     get_current_value(): number;
     get_group(): GLib.SList;
     join_group(group_source: RadioAction | null): void;
@@ -4878,25 +5731,34 @@ declare module 'gnome-gtk' {
     constructor(group: GLib.SList | null);
     group: RadioButton;
     static check_button: CheckButton;
+    static priv: RadioButtonPrivate;
     get_group(): GLib.SList;
     join_group(group_source: RadioButton | null): void;
     set_group(group: GLib.SList | null): void;
     group_changed(): void;
   }
-  export class RadioButtonAccessible extends ToggleButtonAccessible {}
+  export class RadioButtonAccessible extends ToggleButtonAccessible {
+    static parent: ToggleButtonAccessible;
+    static priv: RadioButtonAccessiblePrivate;
+  }
   export class RadioMenuItem extends CheckMenuItem {
     constructor(group: GLib.SList | null);
     group: RadioMenuItem;
     static check_menu_item: CheckMenuItem;
+    static priv: RadioMenuItemPrivate;
     get_group(): GLib.SList;
     join_group(group_source: RadioMenuItem | null): void;
     set_group(group: GLib.SList | null): void;
     group_changed(): void;
   }
-  export class RadioMenuItemAccessible extends CheckMenuItemAccessible {}
+  export class RadioMenuItemAccessible extends CheckMenuItemAccessible {
+    static parent: CheckMenuItemAccessible;
+    static priv: RadioMenuItemAccessiblePrivate;
+  }
   export class RadioToolButton extends ToggleToolButton {
     constructor(group: GLib.SList | null);
     group: RadioToolButton;
+    static parent: ToggleToolButton;
     get_group(): GLib.SList;
     set_group(group: GLib.SList | null): void;
   }
@@ -4910,6 +5772,7 @@ declare module 'gnome-gtk' {
     'show-fill-level': boolean;
     'upper-stepper-sensitivity': SensitivityType;
     static widget: Widget;
+    static priv: RangePrivate;
     get_adjustment(): Adjustment;
     get_fill_level(): number;
     get_flippable(): boolean;
@@ -4949,7 +5812,10 @@ declare module 'gnome-gtk' {
     move_slider(scroll: ScrollType): void;
     value_changed(): void;
   }
-  export class RangeAccessible extends WidgetAccessible {}
+  export class RangeAccessible extends WidgetAccessible {
+    static parent: WidgetAccessible;
+    static priv: RangeAccessiblePrivate;
+  }
   export class RcStyle extends GObject.Object {
     constructor();
     static parent_instance: GObject.Object;
@@ -4993,15 +5859,21 @@ declare module 'gnome-gtk' {
       first_button_text: string | null,
       ...args: any[]
     );
+    static parent_instance: Dialog;
+    static priv: RecentChooserDialogPrivate;
   }
   export class RecentChooserMenu extends Menu {
     constructor();
     'show-numbers': boolean;
+    static parent_instance: Menu;
+    static priv: RecentChooserMenuPrivate;
     get_show_numbers(): boolean;
     set_show_numbers(show_numbers: boolean): void;
   }
   export class RecentChooserWidget extends Box {
     constructor();
+    static parent_instance: Box;
+    static priv: RecentChooserWidgetPrivate;
   }
   export class RecentFilter extends GObject.InitiallyUnowned {
     constructor();
@@ -5042,6 +5914,8 @@ declare module 'gnome-gtk' {
   export class RendererCellAccessible extends CellAccessible {
     constructor(renderer: CellRenderer);
     renderer: CellRenderer;
+    static parent: CellAccessible;
+    static priv: RendererCellAccessiblePrivate;
   }
   export class Revealer extends Bin {
     constructor();
@@ -5049,6 +5923,7 @@ declare module 'gnome-gtk' {
     'reveal-child': boolean;
     'transition-duration': number;
     'transition-type': RevealerTransitionType;
+    static parent_instance: Bin;
     get_child_revealed(): boolean;
     get_reveal_child(): boolean;
     get_transition_duration(): number;
@@ -5064,6 +5939,7 @@ declare module 'gnome-gtk' {
     'has-origin': boolean;
     'value-pos': PositionType;
     static range: Range;
+    static priv: ScalePrivate;
     add_mark(
       value: number,
       position: PositionType,
@@ -5074,6 +5950,7 @@ declare module 'gnome-gtk' {
     get_draw_value(): boolean;
     get_has_origin(): boolean;
     get_layout(): Pango.Layout | null;
+    get_layout_offsets(x?: number, y?: number): void;
     get_value_pos(): PositionType;
     set_digits(digits: number): void;
     set_draw_value(draw_value: boolean): void;
@@ -5081,8 +5958,12 @@ declare module 'gnome-gtk' {
     set_value_pos(pos: PositionType): void;
     draw_value(): void;
     format_value(value: number): string;
+    get_layout_offsets(x?: number, y?: number): void;
   }
-  export class ScaleAccessible extends RangeAccessible {}
+  export class ScaleAccessible extends RangeAccessible {
+    static parent: RangeAccessible;
+    static priv: ScaleAccessiblePrivate;
+  }
   export class ScaleButton extends Button {
     constructor(
       size: IconSize,
@@ -5095,6 +5976,8 @@ declare module 'gnome-gtk' {
     icons: string[];
     size: IconSize;
     value: number;
+    static parent: Button;
+    static priv: ScaleButtonPrivate;
     get_adjustment(): Adjustment;
     get_minus_button(): Button;
     get_plus_button(): Button;
@@ -5105,7 +5988,10 @@ declare module 'gnome-gtk' {
     set_value(value: number): void;
     value_changed(value: number): void;
   }
-  export class ScaleButtonAccessible extends ButtonAccessible {}
+  export class ScaleButtonAccessible extends ButtonAccessible {
+    static parent: ButtonAccessible;
+    static priv: ScaleButtonAccessiblePrivate;
+  }
   export class Scrollbar extends Range {
     constructor(orientation: Orientation, adjustment: Adjustment | null);
     static range: Range;
@@ -5127,6 +6013,8 @@ declare module 'gnome-gtk' {
     'vscrollbar-policy': PolicyType;
     'window-placement': CornerType;
     'window-placement-set': boolean;
+    static container: Bin;
+    static priv: ScrolledWindowPrivate;
     add_with_viewport(child: Widget): void;
     get_capture_button_press(): boolean;
     get_hadjustment(): Adjustment;
@@ -5168,11 +6056,15 @@ declare module 'gnome-gtk' {
     move_focus_out(direction: DirectionType): void;
     scroll_child(scroll: ScrollType, horizontal: boolean): boolean;
   }
-  export class ScrolledWindowAccessible extends ContainerAccessible {}
+  export class ScrolledWindowAccessible extends ContainerAccessible {
+    static parent: ContainerAccessible;
+    static priv: ScrolledWindowAccessiblePrivate;
+  }
   export class SearchBar extends Bin {
     constructor();
     'search-mode-enabled': boolean;
     'show-close-button': boolean;
+    static parent: Bin;
     connect_entry(entry: Entry): void;
     get_search_mode(): boolean;
     get_show_close_button(): boolean;
@@ -5182,6 +6074,7 @@ declare module 'gnome-gtk' {
   }
   export class SearchEntry extends Entry {
     constructor();
+    static parent: Entry;
     handle_event(event: Gdk.Event): boolean;
     next_match(): void;
     previous_match(): void;
@@ -5191,6 +6084,7 @@ declare module 'gnome-gtk' {
   export class Separator extends Widget {
     constructor(orientation: Orientation);
     static widget: Widget;
+    static priv: SeparatorPrivate;
   }
   export class SeparatorMenuItem extends MenuItem {
     constructor();
@@ -5198,6 +6092,9 @@ declare module 'gnome-gtk' {
   }
   export class SeparatorToolItem extends ToolItem {
     constructor();
+    draw: boolean;
+    static parent: ToolItem;
+    static priv: SeparatorToolItemPrivate;
     get_draw(): boolean;
     set_draw(draw: boolean): void;
   }
@@ -5338,6 +6235,8 @@ declare module 'gnome-gtk' {
   export class ShortcutsWindow extends Window {
     'section-name': string;
     'view-name': string;
+    static window: Window;
+    close(): void;
     search(): void;
   }
   export class SizeGroup extends GObject.Object {
@@ -5357,6 +6256,7 @@ declare module 'gnome-gtk' {
   export class Socket extends Container {
     constructor();
     static container: Container;
+    static priv: SocketPrivate;
     add_id(window: xlib.Window): void;
     get_id(): xlib.Window;
     get_plug_window(): Gdk.Window | null;
@@ -5378,6 +6278,7 @@ declare module 'gnome-gtk' {
     value: number;
     wrap: boolean;
     static entry: Entry;
+    static priv: SpinButtonPrivate;
     configure(
       adjustment: Adjustment | null,
       climb_rate: number,
@@ -5410,14 +6311,22 @@ declare module 'gnome-gtk' {
     value_changed(): void;
     wrapped(): void;
   }
-  export class SpinButtonAccessible extends EntryAccessible {}
+  export class SpinButtonAccessible extends EntryAccessible {
+    static parent: EntryAccessible;
+    static priv: SpinButtonAccessiblePrivate;
+  }
   export class Spinner extends Widget {
     constructor();
     active: boolean;
+    static parent: Widget;
+    static priv: SpinnerPrivate;
     start(): void;
     stop(): void;
   }
-  export class SpinnerAccessible extends WidgetAccessible {}
+  export class SpinnerAccessible extends WidgetAccessible {
+    static parent: WidgetAccessible;
+    static priv: SpinnerAccessiblePrivate;
+  }
   export class Stack extends Container {
     constructor();
     hhomogeneous: boolean;
@@ -5429,6 +6338,7 @@ declare module 'gnome-gtk' {
     vhomogeneous: boolean;
     'visible-child': Widget;
     'visible-child-name': string;
+    static parent_instance: Container;
     add_named(child: Widget, name: string): void;
     add_titled(child: Widget, name: string, title: string): void;
     get_child_by_name(name: string): Widget | null;
@@ -5451,10 +6361,13 @@ declare module 'gnome-gtk' {
     set_visible_child_full(name: string, transition: StackTransitionType): void;
     set_visible_child_name(name: string): void;
   }
-  export class StackAccessible extends ContainerAccessible {}
+  export class StackAccessible extends ContainerAccessible {
+    static parent: ContainerAccessible;
+  }
   export class StackSidebar extends Bin {
     constructor();
     stack: Stack;
+    static parent: Bin;
     get_stack(): Stack | null;
     set_stack(stack: Stack): void;
   }
@@ -5462,6 +6375,7 @@ declare module 'gnome-gtk' {
     constructor();
     'icon-size': number;
     stack: Stack;
+    static widget: Box;
     get_stack(): Stack | null;
     set_stack(stack: Stack | null): void;
   }
@@ -5538,15 +6452,20 @@ declare module 'gnome-gtk' {
   export class Statusbar extends Box {
     constructor();
     static parent_widget: Box;
+    static priv: StatusbarPrivate;
     get_context_id(context_description: string): number;
     get_message_area(): Box;
     pop(context_id: number): void;
     push(context_id: number, text: string): number;
+    remove(context_id: number, message_id: number): void;
     remove_all(context_id: number): void;
     text_popped(context_id: number, text: string): void;
     text_pushed(context_id: number, text: string): void;
   }
-  export class StatusbarAccessible extends ContainerAccessible {}
+  export class StatusbarAccessible extends ContainerAccessible {
+    static parent: ContainerAccessible;
+    static priv: StatusbarAccessiblePrivate;
+  }
   export class Style extends GObject.Object {
     constructor();
     context: StyleContext;
@@ -5582,6 +6501,7 @@ declare module 'gnome-gtk' {
       height: number
     ): void;
     attach(window: Gdk.Window): Style;
+    copy(): Style;
     detach(): void;
     get(widget_type: any, first_property_name: string, ...args: any[]): void;
     get_style_property(
@@ -5597,7 +6517,17 @@ declare module 'gnome-gtk' {
     has_context(): boolean;
     lookup_color(color_name: string, color: Gdk.Color): boolean;
     lookup_icon_set(stock_id: string): IconSet;
+    render_icon(
+      source: IconSource,
+      direction: TextDirection,
+      state: StateType,
+      size: IconSize,
+      widget: Widget | null,
+      detail: string | null
+    ): GdkPixbuf.Pixbuf;
+    set_background(window: Gdk.Window, state_type: StateType): void;
     clone(): Style;
+    copy(src: Style): void;
     draw_arrow(
       cr: cairo.Context,
       state_type: StateType,
@@ -5823,6 +6753,15 @@ declare module 'gnome-gtk' {
     ): void;
     init_from_rc(rc_style: RcStyle): void;
     realize(): void;
+    render_icon(
+      source: IconSource,
+      direction: TextDirection,
+      state: StateType,
+      size: IconSize,
+      widget: Widget | null,
+      detail: string | null
+    ): GdkPixbuf.Pixbuf;
+    set_background(window: Gdk.Window, state_type: StateType): void;
     unrealize(): void;
   }
   export class StyleContext extends GObject.Object {
@@ -5941,11 +6880,19 @@ declare module 'gnome-gtk' {
     constructor();
     active: boolean;
     state: boolean;
+    static parent_instance: Widget;
+    static priv: SwitchPrivate;
     get_active(): boolean;
+    get_state(): boolean;
     set_active(is_active: boolean): void;
+    set_state(state: boolean): void;
+    activate(): void;
     state_set(state: boolean): boolean;
   }
-  export class SwitchAccessible extends WidgetAccessible {}
+  export class SwitchAccessible extends WidgetAccessible {
+    static parent: WidgetAccessible;
+    static priv: SwitchAccessiblePrivate;
+  }
   export class Table extends Container {
     constructor(rows: number, columns: number, homogeneous: boolean);
     'column-spacing': number;
@@ -5954,6 +6901,7 @@ declare module 'gnome-gtk' {
     'n-rows': number;
     'row-spacing': number;
     static container: Container;
+    static priv: TablePrivate;
     attach(
       child: Widget,
       left_attach: number,
@@ -5988,6 +6936,7 @@ declare module 'gnome-gtk' {
   export class TearoffMenuItem extends MenuItem {
     constructor();
     static menu_item: MenuItem;
+    static priv: TearoffMenuItemPrivate;
   }
   export class TextBuffer extends GObject.Object {
     constructor(table: TextTagTable | null);
@@ -6001,12 +6950,14 @@ declare module 'gnome-gtk' {
     static priv: TextBufferPrivate;
     add_mark(mark: TextMark, where: TextIter): void;
     add_selection_clipboard(clipboard: Clipboard): void;
+    apply_tag(tag: TextTag, start: TextIter, end: TextIter): void;
     apply_tag_by_name(name: string, start: TextIter, end: TextIter): void;
     backspace(
       iter: TextIter,
       interactive: boolean,
       default_editable: boolean
     ): boolean;
+    begin_user_action(): void;
     copy_clipboard(clipboard: Clipboard): void;
     create_child_anchor(iter: TextIter): TextChildAnchor;
     create_mark(
@@ -6041,6 +6992,7 @@ declare module 'gnome-gtk' {
       format: Gdk.Atom,
       can_create_tags: boolean
     ): void;
+    end_user_action(): void;
     get_bounds(start: TextIter, end: TextIter): void;
     get_char_count(): number;
     get_copy_target_list(): TargetList;
@@ -6083,6 +7035,7 @@ declare module 'gnome-gtk' {
     ): string;
     insert(iter: TextIter, text: string, len: number): void;
     insert_at_cursor(text: string, len: number): void;
+    insert_child_anchor(iter: TextIter, anchor: TextChildAnchor): void;
     insert_interactive(
       iter: TextIter,
       text: string,
@@ -6095,6 +7048,7 @@ declare module 'gnome-gtk' {
       default_editable: boolean
     ): boolean;
     insert_markup(iter: TextIter, markup: string, len: number): void;
+    insert_pixbuf(iter: TextIter, pixbuf: GdkPixbuf.Pixbuf): void;
     insert_range(iter: TextIter, start: TextIter, end: TextIter): void;
     insert_range_interactive(
       iter: TextIter,
@@ -6140,6 +7094,7 @@ declare module 'gnome-gtk' {
     register_serialize_tagset(tagset_name: string | null): Gdk.Atom;
     remove_all_tags(start: TextIter, end: TextIter): void;
     remove_selection_clipboard(clipboard: Clipboard): void;
+    remove_tag(tag: TextTag, start: TextIter, end: TextIter): void;
     remove_tag_by_name(name: string, start: TextIter, end: TextIter): void;
     select_range(ins: TextIter, bound: TextIter): void;
     serialize(
@@ -6153,15 +7108,24 @@ declare module 'gnome-gtk' {
     set_text(text: string, len: number): void;
     unregister_deserialize_format(format: Gdk.Atom): void;
     unregister_serialize_format(format: Gdk.Atom): void;
+    apply_tag(tag: TextTag, start: TextIter, end: TextIter): void;
+    begin_user_action(): void;
     changed(): void;
     delete_range(start: TextIter, end: TextIter): void;
+    end_user_action(): void;
+    insert_child_anchor(iter: TextIter, anchor: TextChildAnchor): void;
+    insert_pixbuf(iter: TextIter, pixbuf: GdkPixbuf.Pixbuf): void;
     insert_text(pos: TextIter, new_text: string, new_text_length: number): void;
     mark_deleted(mark: TextMark): void;
     mark_set(location: TextIter, mark: TextMark): void;
     modified_changed(): void;
     paste_done(clipboard: Clipboard): void;
+    remove_tag(tag: TextTag, start: TextIter, end: TextIter): void;
   }
-  export class TextCellAccessible extends RendererCellAccessible {}
+  export class TextCellAccessible extends RendererCellAccessible {
+    static parent: RendererCellAccessible;
+    static priv: TextCellAccessiblePrivate;
+  }
   export class TextChildAnchor extends GObject.Object {
     constructor();
     static parent_instance: GObject.Object;
@@ -6261,8 +7225,18 @@ declare module 'gnome-gtk' {
     static parent_instance: GObject.Object;
     static priv: TextTagPrivate;
     changed(size_changed: boolean): void;
+    event(
+      event_object: GObject.Object,
+      event: Gdk.Event,
+      iter: TextIter
+    ): boolean;
     get_priority(): number;
     set_priority(priority: number): void;
+    event(
+      event_object: GObject.Object,
+      event: Gdk.Event,
+      iter: TextIter
+    ): boolean;
   }
   export class TextTagTable extends GObject.Object {
     constructor();
@@ -6300,6 +7274,8 @@ declare module 'gnome-gtk' {
     tabs: Pango.TabArray;
     'top-margin': number;
     'wrap-mode': WrapMode;
+    static parent_instance: Container;
+    static priv: TextViewPrivate;
     add_child_at_anchor(child: Widget, anchor: TextChildAnchor): void;
     add_child_in_window(
       child: Widget,
@@ -6356,6 +7332,7 @@ declare module 'gnome-gtk' {
     get_top_margin(): number;
     get_vadjustment(): Adjustment;
     get_visible_rect(visible_rect: Gdk.Rectangle): void;
+    get_window(win: TextWindowType): Gdk.Window | null;
     get_window_type(window: Gdk.Window): TextWindowType;
     get_wrap_mode(): WrapMode;
     im_context_filter_keypress(event: Gdk.EventKey): boolean;
@@ -6432,7 +7409,10 @@ declare module 'gnome-gtk' {
     set_anchor(): void;
     toggle_overwrite(): void;
   }
-  export class TextViewAccessible extends ContainerAccessible {}
+  export class TextViewAccessible extends ContainerAccessible {
+    static parent: ContainerAccessible;
+    static priv: TextViewAccessiblePrivate;
+  }
   export class ThemingEngine extends GObject.Object {
     name: string;
     static parent_object: GObject.Object;
@@ -6595,10 +7575,13 @@ declare module 'gnome-gtk' {
     active: boolean;
     'draw-as-radio': boolean;
     static parent: Action;
+    static private_data: ToggleActionPrivate;
     get_active(): boolean;
     get_draw_as_radio(): boolean;
     set_active(is_active: boolean): void;
     set_draw_as_radio(draw_as_radio: boolean): void;
+    toggled(): void;
+    toggled(): void;
   }
   export class ToggleButton extends Button {
     constructor();
@@ -6606,17 +7589,25 @@ declare module 'gnome-gtk' {
     'draw-indicator': boolean;
     inconsistent: boolean;
     static button: Button;
+    static priv: ToggleButtonPrivate;
     get_active(): boolean;
     get_inconsistent(): boolean;
     get_mode(): boolean;
     set_active(is_active: boolean): void;
     set_inconsistent(setting: boolean): void;
     set_mode(draw_indicator: boolean): void;
+    toggled(): void;
+    toggled(): void;
   }
-  export class ToggleButtonAccessible extends ButtonAccessible {}
+  export class ToggleButtonAccessible extends ButtonAccessible {
+    static parent: ButtonAccessible;
+    static priv: ToggleButtonAccessiblePrivate;
+  }
   export class ToggleToolButton extends ToolButton {
     constructor();
     active: boolean;
+    static parent: ToolButton;
+    static priv: ToggleToolButtonPrivate;
     get_active(): boolean;
     set_active(is_active: boolean): void;
     toggled(): void;
@@ -6629,6 +7620,8 @@ declare module 'gnome-gtk' {
     'label-widget': Widget;
     'stock-id': string;
     'use-underline': boolean;
+    static parent: ToolItem;
+    static priv: ToolButtonPrivate;
     get_icon_name(): string | null;
     get_icon_widget(): Widget | null;
     get_label(): string | null;
@@ -6648,6 +7641,8 @@ declare module 'gnome-gtk' {
     'is-important': boolean;
     'visible-horizontal': boolean;
     'visible-vertical': boolean;
+    static parent: Bin;
+    static priv: ToolItemPrivate;
     get_ellipsize_mode(): Pango.EllipsizeMode;
     get_expand(): boolean;
     get_homogeneous(): boolean;
@@ -6669,10 +7664,14 @@ declare module 'gnome-gtk' {
     set_homogeneous(homogeneous: boolean): void;
     set_is_important(is_important: boolean): void;
     set_proxy_menu_item(menu_item_id: string, menu_item: Widget | null): void;
+    set_tooltip_markup(markup: string): void;
+    set_tooltip_text(text: string): void;
     set_use_drag_window(use_drag_window: boolean): void;
     set_visible_horizontal(visible_horizontal: boolean): void;
     set_visible_vertical(visible_vertical: boolean): void;
+    toolbar_reconfigured(): void;
     create_menu_proxy(): boolean;
+    toolbar_reconfigured(): void;
   }
   export class ToolItemGroup extends Container {
     constructor(label: string);
@@ -6681,6 +7680,8 @@ declare module 'gnome-gtk' {
     'header-relief': ReliefStyle;
     label: string;
     'label-widget': Widget;
+    static parent_instance: Container;
+    static priv: ToolItemGroupPrivate;
     get_collapsed(): boolean;
     get_drop_item(x: number, y: number): ToolItem;
     get_ellipsize(): Pango.EllipsizeMode;
@@ -6703,6 +7704,8 @@ declare module 'gnome-gtk' {
     'icon-size': IconSize;
     'icon-size-set': boolean;
     'toolbar-style': ToolbarStyle;
+    static parent_instance: Container;
+    static priv: ToolPalettePrivate;
     add_drag_dest(
       widget: Widget,
       flags: DestDefaults,
@@ -6717,12 +7720,14 @@ declare module 'gnome-gtk' {
     get_group_position(group: ToolItemGroup): number;
     get_hadjustment(): Adjustment;
     get_icon_size(): IconSize;
+    get_style(): ToolbarStyle;
     get_vadjustment(): Adjustment;
     set_drag_source(targets: ToolPaletteDragTargets): void;
     set_exclusive(group: ToolItemGroup, exclusive: boolean): void;
     set_expand(group: ToolItemGroup, expand: boolean): void;
     set_group_position(group: ToolItemGroup, position: number): void;
     set_icon_size(icon_size: IconSize): void;
+    set_style(style: ToolbarStyle): void;
     unset_icon_size(): void;
     unset_style(): void;
     static get_drag_target_group(): TargetEntry;
@@ -6735,6 +7740,7 @@ declare module 'gnome-gtk' {
     'show-arrow': boolean;
     'toolbar-style': ToolbarStyle;
     static container: Container;
+    static priv: ToolbarPrivate;
     get_drop_index(x: number, y: number): number;
     get_icon_size(): IconSize;
     get_item_index(item: ToolItem): number;
@@ -6742,10 +7748,12 @@ declare module 'gnome-gtk' {
     get_nth_item(n: number): ToolItem | null;
     get_relief_style(): ReliefStyle;
     get_show_arrow(): boolean;
+    get_style(): ToolbarStyle;
     insert(item: ToolItem, pos: number): void;
     set_drop_highlight_item(tool_item: ToolItem | null, index_: number): void;
     set_icon_size(icon_size: IconSize): void;
     set_show_arrow(show_arrow: boolean): void;
+    set_style(style: ToolbarStyle): void;
     unset_icon_size(): void;
     unset_style(): void;
     orientation_changed(orientation: Orientation): void;
@@ -6928,6 +7936,8 @@ declare module 'gnome-gtk' {
     'show-expanders': boolean;
     'tooltip-column': number;
     'ubuntu-almost-fixed-height-mode': boolean;
+    static parent: Container;
+    static priv: TreeViewPrivate;
     append_column(column: TreeViewColumn): number;
     collapse_all(): void;
     collapse_row(path: TreePath): boolean;
@@ -7078,6 +8088,8 @@ declare module 'gnome-gtk' {
       base_column: TreeViewColumn | null
     ): void;
     remove_column(column: TreeViewColumn): number;
+    row_activated(path: TreePath, column: TreeViewColumn): void;
+    row_expanded(path: TreePath): boolean;
     scroll_to_cell(
       path: TreePath | null,
       column: TreeViewColumn | null,
@@ -7161,7 +8173,9 @@ declare module 'gnome-gtk' {
       open_all: boolean
     ): boolean;
     move_cursor(step: MovementStep, count: number): boolean;
+    row_activated(path: TreePath, column: TreeViewColumn): void;
     row_collapsed(iter: TreeIter, path: TreePath): void;
+    row_expanded(iter: TreeIter, path: TreePath): void;
     select_all(): boolean;
     select_cursor_parent(): boolean;
     select_cursor_row(start_editing: boolean): boolean;
@@ -7171,7 +8185,10 @@ declare module 'gnome-gtk' {
     toggle_cursor_row(): boolean;
     unselect_all(): boolean;
   }
-  export class TreeViewAccessible extends ContainerAccessible {}
+  export class TreeViewAccessible extends ContainerAccessible {
+    static parent: ContainerAccessible;
+    static priv: TreeViewAccessiblePrivate;
+  }
   export class TreeViewColumn extends GObject.InitiallyUnowned {
     constructor();
     alignment: number;
@@ -7221,6 +8238,7 @@ declare module 'gnome-gtk' {
     ): void;
     clear(): void;
     clear_attributes(cell_renderer: CellRenderer): void;
+    clicked(): void;
     focus_cell(cell: CellRenderer): void;
     get_alignment(): number;
     get_button(): Widget;
@@ -7268,6 +8286,7 @@ declare module 'gnome-gtk' {
     set_title(title: string): void;
     set_visible(visible: boolean): void;
     set_widget(widget: Widget | null): void;
+    clicked(): void;
   }
   export class UIManager extends GObject.Object {
     constructor();
@@ -7288,10 +8307,12 @@ declare module 'gnome-gtk' {
     add_ui_from_string(buffer: string, length: number): number;
     ensure_update(): void;
     get_accel_group(): AccelGroup;
+    get_action(path: string): Action;
     get_action_groups(): GLib.List;
     get_add_tearoffs(): boolean;
     get_toplevels(types: UIManagerItemType): GLib.SList;
     get_ui(): string;
+    get_widget(path: string): Widget;
     insert_action_group(action_group: ActionGroup, pos: number): void;
     new_merge_id(): number;
     remove_action_group(action_group: ActionGroup): void;
@@ -7301,6 +8322,8 @@ declare module 'gnome-gtk' {
     add_widget(widget: Widget): void;
     connect_proxy(action: Action, proxy: Widget): void;
     disconnect_proxy(action: Action, proxy: Widget): void;
+    get_action(path: string): Action;
+    get_widget(path: string): Widget;
     post_activate(action: Action): void;
     pre_activate(action: Action): void;
   }
@@ -7332,6 +8355,7 @@ declare module 'gnome-gtk' {
     constructor(hadjustment: Adjustment | null, vadjustment: Adjustment | null);
     'shadow-type': ShadowType;
     static bin: Bin;
+    static priv: ViewportPrivate;
     get_bin_window(): Gdk.Window;
     get_hadjustment(): Adjustment;
     get_shadow_type(): ShadowType;
@@ -7344,6 +8368,7 @@ declare module 'gnome-gtk' {
   export class VolumeButton extends ScaleButton {
     constructor();
     'use-symbolic': boolean;
+    static parent: ScaleButton;
   }
   export class Widget extends GObject.InitiallyUnowned {
     constructor(type: any, first_property_name: string, ...args: any[]);
@@ -7404,16 +8429,26 @@ declare module 'gnome-gtk' {
       user_data: object | null,
       notify: GLib.DestroyNotify
     ): number;
+    can_activate_accel(signal_id: number): boolean;
     child_focus(direction: DirectionType): boolean;
+    child_notify(child_property: string): void;
     class_path(
       path_length?: number,
       path?: string,
       path_reversed?: string
     ): void;
+    compute_expand(orientation: Orientation): boolean;
     create_pango_context(): Pango.Context;
     create_pango_layout(text: string | null): Pango.Layout;
+    destroy(): void;
     destroyed(widget_pointer: Widget): void;
     device_is_shadowed(device: Gdk.Device): boolean;
+    drag_begin(
+      targets: TargetList,
+      actions: Gdk.DragAction,
+      button: number,
+      event: Gdk.Event | null
+    ): Gdk.DragContext;
     drag_begin_with_coordinates(
       targets: TargetList,
       actions: Gdk.DragAction,
@@ -7474,9 +8509,12 @@ declare module 'gnome-gtk' {
     drag_source_set_target_list(target_list: TargetList | null): void;
     drag_source_unset(): void;
     drag_unhighlight(): void;
+    draw(cr: cairo.Context): void;
     ensure_style(): void;
     error_bell(): void;
+    event(event: Gdk.Event): boolean;
     freeze_child_notify(): void;
+    get_accessible(): Atk.Object;
     get_action_group(prefix: string): Gio.ActionGroup | null;
     get_allocated_baseline(): number;
     get_allocated_height(): number;
@@ -7524,12 +8562,35 @@ declare module 'gnome-gtk' {
     get_parent_window(): Gdk.Window | null;
     get_path(): WidgetPath;
     get_pointer(x?: number, y?: number): void;
+    get_preferred_height(
+      minimum_height?: number,
+      natural_height?: number
+    ): void;
+    get_preferred_height_and_baseline_for_width(
+      width: number,
+      minimum_height?: number,
+      natural_height?: number,
+      minimum_baseline?: number,
+      natural_baseline?: number
+    ): void;
+    get_preferred_height_for_width(
+      width: number,
+      minimum_height?: number,
+      natural_height?: number
+    ): void;
     get_preferred_size(
       minimum_size?: Requisition,
       natural_size?: Requisition
     ): void;
+    get_preferred_width(minimum_width?: number, natural_width?: number): void;
+    get_preferred_width_for_height(
+      height: number,
+      minimum_width?: number,
+      natural_width?: number
+    ): void;
     get_realized(): boolean;
     get_receives_default(): boolean;
+    get_request_mode(): SizeRequestMode;
     get_requisition(requisition: Requisition): void;
     get_root_window(): Gdk.Window;
     get_scale_factor(): number;
@@ -7556,6 +8617,7 @@ declare module 'gnome-gtk' {
     get_window(): Gdk.Window | null;
     grab_add(): void;
     grab_default(): void;
+    grab_focus(): void;
     grab_remove(): void;
     has_default(): boolean;
     has_focus(): boolean;
@@ -7563,6 +8625,7 @@ declare module 'gnome-gtk' {
     has_rc_style(): boolean;
     has_screen(): boolean;
     has_visible_focus(): boolean;
+    hide(): void;
     hide_on_delete(): boolean;
     in_destruction(): boolean;
     init_template(): void;
@@ -7576,9 +8639,12 @@ declare module 'gnome-gtk' {
     is_sensitive(): boolean;
     is_toplevel(): boolean;
     is_visible(): boolean;
+    keynav_failed(direction: DirectionType): boolean;
     list_accel_closures(): GLib.List;
     list_action_prefixes(): string[];
     list_mnemonic_labels(): GLib.List;
+    map(): void;
+    mnemonic_activate(group_cycling: boolean): boolean;
     modify_base(state: StateType, color: Gdk.Color | null): void;
     modify_bg(state: StateType, color: Gdk.Color | null): void;
     modify_cursor(primary: Gdk.Color | null, secondary: Gdk.Color | null): void;
@@ -7599,8 +8665,10 @@ declare module 'gnome-gtk' {
     queue_compute_expand(): void;
     queue_draw(): void;
     queue_draw_area(x: number, y: number, width: number, height: number): void;
+    queue_draw_region(region: cairo.Region): void;
     queue_resize(): void;
     queue_resize_no_redraw(): void;
+    realize(): void;
     region_intersect(region: cairo.Region): cairo.Region;
     register_window(window: Gdk.Window): void;
     remove_accelerator(
@@ -7679,7 +8747,10 @@ declare module 'gnome-gtk' {
     set_visual(visual: Gdk.Visual | null): void;
     set_window(window: Gdk.Window): void;
     shape_combine_region(region: cairo.Region | null): void;
+    show(): void;
+    show_all(): void;
     show_now(): void;
+    size_allocate(allocation: Allocation): void;
     size_allocate_with_baseline(allocation: Allocation, baseline: number): void;
     size_request(requisition: Requisition): void;
     style_attach(): void;
@@ -7695,7 +8766,9 @@ declare module 'gnome-gtk' {
       dest_y?: number
     ): boolean;
     trigger_tooltip_query(): void;
+    unmap(): void;
     unparent(): void;
+    unrealize(): void;
     unregister_window(window: Gdk.Window): void;
     unset_state_flags(flags: StateFlags): void;
     adjust_baseline_allocation(baseline: number): void;
@@ -7717,16 +8790,21 @@ declare module 'gnome-gtk' {
     ): void;
     button_press_event(event: Gdk.EventButton): boolean;
     button_release_event(event: Gdk.EventButton): boolean;
+    can_activate_accel(signal_id: number): boolean;
+    child_notify(child_property: GObject.ParamSpec): void;
     composited_changed(): void;
+    compute_expand(hexpand_p: boolean, vexpand_p: boolean): void;
     configure_event(event: Gdk.EventConfigure): boolean;
     damage_event(event: Gdk.EventExpose): boolean;
     delete_event(event: Gdk.EventAny): boolean;
+    destroy(): void;
     destroy_event(event: Gdk.EventAny): boolean;
     direction_changed(previous_direction: TextDirection): void;
     dispatch_child_properties_changed(
       n_pspecs: number,
       pspecs: GObject.ParamSpec
     ): void;
+    drag_begin(context: Gdk.DragContext): void;
     drag_data_delete(context: Gdk.DragContext): void;
     drag_data_get(
       context: Gdk.DragContext,
@@ -7757,17 +8835,48 @@ declare module 'gnome-gtk' {
       y: number,
       time_: number
     ): boolean;
+    draw(cr: cairo.Context): boolean;
     enter_notify_event(event: Gdk.EventCrossing): boolean;
+    event(event: Gdk.Event): boolean;
     focus(direction: DirectionType): boolean;
     focus_in_event(event: Gdk.EventFocus): boolean;
     focus_out_event(event: Gdk.EventFocus): boolean;
+    get_accessible(): Atk.Object;
+    get_preferred_height(
+      minimum_height?: number,
+      natural_height?: number
+    ): void;
+    get_preferred_height_and_baseline_for_width(
+      width: number,
+      minimum_height?: number,
+      natural_height?: number,
+      minimum_baseline?: number,
+      natural_baseline?: number
+    ): void;
+    get_preferred_height_for_width(
+      width: number,
+      minimum_height?: number,
+      natural_height?: number
+    ): void;
+    get_preferred_width(minimum_width?: number, natural_width?: number): void;
+    get_preferred_width_for_height(
+      height: number,
+      minimum_width?: number,
+      natural_width?: number
+    ): void;
+    get_request_mode(): SizeRequestMode;
     grab_broken_event(event: Gdk.EventGrabBroken): boolean;
+    grab_focus(): void;
     grab_notify(was_grabbed: boolean): void;
+    hide(): void;
     hierarchy_changed(previous_toplevel: Widget): void;
     key_press_event(event: Gdk.EventKey): boolean;
     key_release_event(event: Gdk.EventKey): boolean;
+    keynav_failed(direction: DirectionType): boolean;
     leave_notify_event(event: Gdk.EventCrossing): boolean;
+    map(): void;
     map_event(event: Gdk.EventAny): boolean;
+    mnemonic_activate(group_cycling: boolean): boolean;
     motion_notify_event(event: Gdk.EventMotion): boolean;
     move_focus(direction: DirectionType): void;
     parent_set(previous_parent: Widget): void;
@@ -7781,6 +8890,8 @@ declare module 'gnome-gtk' {
       keyboard_tooltip: boolean,
       tooltip: Tooltip
     ): boolean;
+    queue_draw_region(region: cairo.Region): void;
+    realize(): void;
     screen_changed(previous_screen: Gdk.Screen): void;
     scroll_event(event: Gdk.EventScroll): boolean;
     selection_clear_event(event: Gdk.EventSelection): boolean;
@@ -7792,13 +8903,18 @@ declare module 'gnome-gtk' {
     selection_notify_event(event: Gdk.EventSelection): boolean;
     selection_received(selection_data: SelectionData, time_: number): void;
     selection_request_event(event: Gdk.EventSelection): boolean;
+    show(): void;
+    show_all(): void;
     show_help(help_type: WidgetHelpType): boolean;
+    size_allocate(allocation: Allocation): void;
     state_changed(previous_state: StateType): void;
     state_flags_changed(previous_state_flags: StateFlags): void;
     style_set(previous_style: Style): void;
     style_updated(): void;
     touch_event(event: Gdk.EventTouch): boolean;
+    unmap(): void;
     unmap_event(event: Gdk.EventAny): boolean;
+    unrealize(): void;
     visibility_notify_event(event: Gdk.EventVisibility): boolean;
     window_state_event(event: Gdk.EventWindowState): boolean;
     static get_default_direction(): TextDirection;
@@ -7807,7 +8923,10 @@ declare module 'gnome-gtk' {
     static push_composite_child(): void;
     static set_default_direction(dir: TextDirection): void;
   }
-  export class WidgetAccessible extends Accessible {}
+  export class WidgetAccessible extends Accessible {
+    static parent: Accessible;
+    static priv: WidgetAccessiblePrivate;
+  }
   export class Window extends Bin {
     constructor(type: WindowType);
     'accept-focus': boolean;
@@ -7844,6 +8963,9 @@ declare module 'gnome-gtk' {
     'urgency-hint': boolean;
     'window-position': WindowPosition;
     static bin: Bin;
+    static priv: WindowPrivate;
+    activate_default(): boolean;
+    activate_focus(): boolean;
     activate_key(event: Gdk.EventKey): boolean;
     add_accel_group(accel_group: AccelGroup): void;
     add_mnemonic(keyval: number, target: Widget): void;
@@ -7885,10 +9007,12 @@ declare module 'gnome-gtk' {
     get_mnemonic_modifier(): Gdk.ModifierType;
     get_mnemonics_visible(): boolean;
     get_modal(): boolean;
+    get_opacity(): number;
     get_position(root_x?: number, root_y?: number): void;
     get_resizable(): boolean;
     get_resize_grip_area(rect: Gdk.Rectangle): boolean;
     get_role(): string | null;
+    get_screen(): Gdk.Screen;
     get_size(width: number | null, height: number | null): void;
     get_skip_pager_hint(): boolean;
     get_skip_taskbar_hint(): boolean;
@@ -7904,6 +9028,7 @@ declare module 'gnome-gtk' {
     is_active(): boolean;
     is_maximized(): boolean;
     maximize(): void;
+    mnemonic_activate(keyval: number, modifier: Gdk.ModifierType): boolean;
     move(x: number, y: number): void;
     parse_geometry(geometry: string): boolean;
     present(): void;
@@ -7924,6 +9049,7 @@ declare module 'gnome-gtk' {
     set_default_size(width: number, height: number): void;
     set_deletable(setting: boolean): void;
     set_destroy_with_parent(setting: boolean): void;
+    set_focus(focus: Widget | null): void;
     set_focus_on_map(setting: boolean): void;
     set_focus_visible(setting: boolean): void;
     set_geometry_hints(
@@ -7944,6 +9070,7 @@ declare module 'gnome-gtk' {
     set_mnemonic_modifier(modifier: Gdk.ModifierType): void;
     set_mnemonics_visible(setting: boolean): void;
     set_modal(modal: boolean): void;
+    set_opacity(opacity: number): void;
     set_position(position: WindowPosition): void;
     set_resizable(resizable: boolean): void;
     set_role(role: string): void;
@@ -7961,8 +9088,11 @@ declare module 'gnome-gtk' {
     unfullscreen(): void;
     unmaximize(): void;
     unstick(): void;
+    activate_default(): void;
+    activate_focus(): void;
     enable_debugging(toggle: boolean): boolean;
     keys_changed(): void;
+    set_focus(focus: Widget | null): void;
     static get_default_icon_list(): GLib.List;
     static get_default_icon_name(): string;
     static list_toplevels(): GLib.List;
@@ -7973,7 +9103,10 @@ declare module 'gnome-gtk' {
     static set_default_icon_name(name: string): void;
     static set_interactive_debugging(enable: boolean): void;
   }
-  export class WindowAccessible extends ContainerAccessible {}
+  export class WindowAccessible extends ContainerAccessible {
+    static parent: ContainerAccessible;
+    static priv: WindowAccessiblePrivate;
+  }
   export class WindowGroup extends GObject.Object {
     constructor();
     static parent_instance: GObject.Object;
