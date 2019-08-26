@@ -39,26 +39,33 @@
     "test": "npm run lint && jest"
   },
   "dependencies": {
-    "core-js": "^3.1.3",
-    "gnome-glib": "^0.0.2",
-    "gnome-gobject": "^0.0.2"
+    "core-js": "^3.2.1",
+    "gnome-atk": "0.0.2",
+    "gnome-cairo": "0.0.2",
+    "gnome-gdk": "^0.0.1",
+    "gnome-gdk-pixbuf": "0.0.1",
+    "gnome-gio": "0.0.2",
+    "gnome-glib": "0.0.4",
+    "gnome-gobject": "0.0.4",
+    "gnome-pango": "0.0.3",
+    "gnome-xlib": "0.0.2"
   },
   "devDependencies": {
-    "@babel/cli": "^7.4.4",
-    "@babel/core": "^7.4.5",
-    "@babel/node": "^7.4.5",
+    "@babel/cli": "^7.5.5",
+    "@babel/core": "^7.5.5",
+    "@babel/node": "^7.5.5",
     "@babel/preset-typescript": "^7.3.3",
-    "@types/jest": "^24.0.13",
-    "@typescript-eslint/eslint-plugin": "^1.9.0",
-    "@typescript-eslint/parser": "^1.9.0",
-    "babel-preset-jam": "^0.4.1",
-    "eslint": "^5.16.0",
-    "eslint-config-airbnb-typescript": "^4.0.0",
-    "eslint-config-jam": "^0.2.12",
-    "jest": "^24.8.0",
+    "@types/jest": "^24.0.18",
+    "@typescript-eslint/eslint-plugin": "^2.0.0",
+    "@typescript-eslint/parser": "^2.0.0",
+    "babel-preset-jam": "^0.4.3",
+    "eslint": "^6.2.2",
+    "eslint-config-airbnb-typescript": "^4.0.1",
+    "eslint-config-jam": "^0.2.17",
+    "jest": "^24.9.0",
     "ts-gir": "^0.1.7",
     "tsc": "^1.20150623.0",
-    "typescript": "^3.5.1"
+    "typescript": "^3.5.3"
   },
   "engines": {
     "node": ">=6.0.0"
@@ -74,8 +81,15 @@
     "moduleName": "gnome-gtk",
     "output": "src/index",
     "importMap": {
+      "atk": "gnome-atk",
+      "cairo": "gnome-cairo",
       "g-lib": "gnome-glib",
-      "g-object": "gnome-gobject"
+      "g-object": "gnome-gobject",
+      "gdk": "gnome-gdk",
+      "gdk-pixbuf": "gnome-gdk-pixbuf",
+      "gio": "gnome-gio",
+      "pango": "gnome-pango",
+      "xlib": "gnome-xlib"
     }
   }
 }

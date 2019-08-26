@@ -1,12 +1,12 @@
-import * as xlib from './xlib';
-import * as cairo from './cairo';
-import * as Atk from './atk';
+import * as xlib from 'gnome-xlib';
+import * as cairo from 'gnome-cairo';
+import * as Atk from 'gnome-atk';
 import * as GObject from 'gnome-gobject';
-import * as GdkPixbuf from './gdk-pixbuf';
-import * as Pango from './pango';
-import * as Gio from './gio';
+import * as GdkPixbuf from 'gnome-gdk-pixbuf';
+import * as Pango from 'gnome-pango';
+import * as Gio from 'gnome-gio';
 import * as GLib from 'gnome-glib';
-import * as Gdk from './gdk';
+import * as Gdk from 'gnome-gdk';
 declare module 'gnome-gtk' {
   export const BINARY_AGE: number;
   export const INPUT_ERROR: number;
