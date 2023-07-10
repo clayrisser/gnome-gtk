@@ -4,6 +4,8 @@
 
 > typescript bindings for gnome gtk
 
+![](assets/gnome-gtk.png)
+
 Please ★ this repo if you found it useful ★ ★ ★
 
 ## Features
